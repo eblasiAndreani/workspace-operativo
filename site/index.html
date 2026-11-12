@@ -6,7 +6,7 @@
     <meta name="description" content="Flujos actual y propuesto de abastecimiento, organizados en tres etapas.">
     <title>Abastecimiento · Workspace operativo</title>
     <link rel="stylesheet" href="styles.css">
-    <script src="app.js?v=oc-asn-sap-1" defer></script>
+    <script src="app.js?v=sugerencia-api-1" defer></script>
   </head>
   <body>
     <header class="page-header">
@@ -326,13 +326,17 @@
         <div id="proposed-billing-diagram" class="diagram-scroll" hidden>
           <svg class="flowchart" viewBox="0 0 1600 780" role="group" aria-labelledby="proposal-title proposal-description">
             <title id="proposal-title">Propuesta: sugerencia, orden de compra, ASN versionada y SAP</title>
-            <desc id="proposal-description">Se toma la sugerencia de compra, se genera la OC distribuyendo los materiales según el almacén donde se gestionan y se arma una ASN versionada para que el worker de WMS no genere otra OC. Se envía a SAP y solo con HTTP 200 y resultado OK se llama a Abastecimiento API para recepción y actualización de stock. Ante error no se avanza.</desc>
+            <desc id="proposal-description">La API de sugerencia de abastecimiento toma la sugerencia guardada, genera la OC distribuyendo los materiales por almacén y arma la ASN versionada. También gestiona el envío a SAP, valida su respuesta y solo con HTTP 200 y resultado OK llama a Abastecimiento API para recepción y actualización de stock. Ante error no avanza.</desc>
             <defs>
               <marker id="arrow-proposal" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto">
                 <path d="M0,0 L10,4 L0,8 Z" fill="#64748b"></path>
               </marker>
             </defs>
 
+            <g class="group app-group">
+              <rect x="10" y="15" width="1160" height="210" rx="14"></rect>
+              <text x="30" y="45" class="group-title">API de sugerencia de abastecimiento · Lectura de sugerencia, generación de OC y ASN versionada</text>
+            </g>
             <g class="edges" aria-hidden="true">
               <path d="M350 130 H430" marker-end="url(#arrow-proposal)"></path>
               <path d="M750 130 H830" marker-end="url(#arrow-proposal)"></path>
@@ -408,6 +412,7 @@
               </text>
             </g>
             <text x="30" y="585" class="group-title">Alcance de esta propuesta</text>
+            <text x="30" y="560" class="edge-label">La API de sugerencia de abastecimiento también gestiona el envío a SAP y la llamada posterior a Abastecimiento API.</text>
             <text x="30" y="618" class="edge-label">El circuito de almacenes, suscriptor y publicador no forma parte de este diagrama.</text>
             <text x="30" y="648" class="edge-label">Pendiente: formato y reconocimiento de la ASN versionada por el worker de WMS.</text>
             <text x="30" y="678" class="edge-label">Pendiente: contrato de recepción / stock y tratamiento de fallas después del OK de SAP.</text>

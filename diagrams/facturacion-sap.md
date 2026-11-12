@@ -165,16 +165,16 @@ Las validaciones de negocio de SAP (proveedor, material, centro y almacén exist
 
 ## Propuesta: envío directo desde la API de sugerencia
 
-Se toma la **sugerencia de compra guardada en la tabla de control** y se genera una orden de compra que distribuye los materiales según el almacén donde deben gestionarse. Con esa OC se arma un **número de ASN versionado**, que debe permitir que el worker de WMS reconozca estas órdenes y no genere otra OC.
+La **API de sugerencia de abastecimiento** gestiona toda esta secuencia: toma la **sugerencia de compra guardada en la tabla de control**, genera una orden de compra que distribuye los materiales según el almacén donde deben gestionarse y arma un **número de ASN versionado**, que debe permitir que el worker de WMS reconozca estas órdenes y no genere otra OC.
 
-Luego se envía la OC a SAP por SAP PO (Tipo 1). **Solo con HTTP 200 y resultado OK** se llama a **Abastecimiento API para la recepción y actualización de stock**. Según el contrato documentado, un HTTP 200 con `IsOk = "FALSE"` no es OK: no se continúa. Se guarda la respuesta de SAP y, ante error o timeout, no se llama a Abastecimiento API.
+La misma API de sugerencia de abastecimiento envía la OC a SAP por SAP PO (Tipo 1), valida y guarda la respuesta. **Solo con HTTP 200 y resultado OK** llama a **Abastecimiento API para la recepción y actualización de stock**. Según el contrato documentado, un HTTP 200 con `IsOk = "FALSE"` no es OK: no se continúa. Ante error o timeout, no llama a Abastecimiento API. Son dos servicios distintos: la API de sugerencia de abastecimiento orquesta el flujo; Abastecimiento API recibe la llamada posterior al OK de SAP.
 
 El circuito de almacenes (SCE/WMS, eventos de ASN, suscriptor y publicador) sale de esta parte del flujo propuesto. Esto no modifica el [flujo actual](#flujo-actual) ni define cómo se realizará una eventual publicación Tipo 2. El reconocimiento de la ASN versionada por el worker es un requisito de integración, no un mecanismo ya validado.
 
 ```mermaid
 sequenceDiagram
     participant CTRL as Tabla de control
-    participant SUG as Generación de OC / API de sugerencia
+    participant SUG as API de sugerencia de abastecimiento
     participant SAP as SAP PO → SAP
     participant ABA as API de abastecimiento
 

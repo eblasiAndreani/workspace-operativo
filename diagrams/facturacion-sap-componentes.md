@@ -8,7 +8,7 @@ Qué hace, recibe y devuelve cada bloque de los diagramas de [Facturación en SA
 - **Envía:** un `POST` por OC con número, fecha (UTC), propietario, centro SAP, proveedor (código sin ceros y razón social) y una línea por artículo con bultos enteros, almacén del WMS y código SAP del material sin ceros.
 - **Recibe:** `202` con un `idTransaccion`; con ese id consulta después el resultado (Pendiente, Aceptado o Rechazado con motivo).
 - **Guarda:** cada OC con su usuario, la solicitud enviada, el `idTransaccion` y el estado (`PENDIENTE`, `ENVIADA` o `ERROR`). Si una OC falla, las demás se envían igual.
-- **En la propuesta:** toma la sugerencia guardada, genera la OC distribuyendo los materiales según almacén y arma una ASN versionada para que el worker de WMS no genere otra OC. Envía el Tipo 1 a SAP PO, guarda la respuesta y solo con HTTP 200 e `IsOk = "TRUE"` llama a Abastecimiento API para recepción y actualización de stock ([detalle](facturacion-sap.md#propuesta-envío-directo-desde-la-api-de-sugerencia)).
+- **En la propuesta:** la **API de sugerencia de abastecimiento** es responsable de toda la secuencia: lee la sugerencia de la tabla de control, genera la OC distribuyendo los materiales según almacén y arma una ASN versionada para que el worker de WMS no genere otra OC. Envía el Tipo 1 a SAP PO, valida y guarda la respuesta y solo con HTTP 200 e `IsOk = "TRUE"` llama al servicio distinto **Abastecimiento API** para recepción y actualización de stock ([detalle](facturacion-sap.md#propuesta-envío-directo-desde-la-api-de-sugerencia)).
 
 ## API de abastecimiento
 
