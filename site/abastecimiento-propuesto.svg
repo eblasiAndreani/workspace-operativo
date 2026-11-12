@@ -1,104 +1,86 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1540 760" role="img" aria-labelledby="title desc">
-  <title id="title">Flujo propuesto de generación de sugerencia de compra</title>
-  <desc id="desc">El modelo recupera recepciones históricas, recepciones y stock de Databricks. Solicita las reglas a Abastecimiento API, que las consulta en SQL y se las devuelve. El modelo calcula la sugerencia y la escribe directamente en la tabla de control de la base de datos, sin pasar por la API.</desc>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1540 660" role="img" aria-labelledby="title desc">
+  <title id="title">Sugerencia de compra: lectura y escritura directa en SQL</title>
+  <desc id="desc">En cada ejecución, el modelo recupera datos de Databricks y lee directamente las reglas de proveedores y materiales de SQL. Combina los insumos y escribe la sugerencia en la tabla de control de la misma base SQL. No interviene la API.</desc>
   <defs>
-    <marker id="arrow" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto">
-      <path d="M0 0 L10 4 L0 8 Z" fill="#52627a"/>
+    <marker id="arrow" markerWidth="9" markerHeight="7" refX="9" refY="3.5" orient="auto" markerUnits="userSpaceOnUse">
+      <path d="M0 0 L9 3.5 L0 7 Z" fill="#64748b"/>
+    </marker>
+    <marker id="arrow-rules" markerWidth="9" markerHeight="7" refX="9" refY="3.5" orient="auto" markerUnits="userSpaceOnUse">
+      <path d="M0 0 L9 3.5 L0 7 Z" fill="#6d28d9"/>
+    </marker>
+    <marker id="arrow-result" markerWidth="9" markerHeight="7" refX="9" refY="3.5" orient="auto" markerUnits="userSpaceOnUse">
+      <path d="M0 0 L9 3.5 L0 7 Z" fill="#b45309"/>
     </marker>
     <style>
       text { font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #172033; }
       .group { stroke-width: 2; }
-      .source-group { fill: #f8fafc; stroke: #94a3b8; }
-      .api-group { fill: #eef2ff; stroke: #6366f1; }
-      .db-group { fill: #f5f3ff; stroke: #8b5cf6; }
-      .model-group { fill: #fff7f7; stroke: #ef4444; }
-      .result-group { fill: #fffbeb; stroke: #f59e0b; }
-      .title { font-size: 19px; font-weight: 700; fill: #334155; }
+      .source { fill: #f8fafc; stroke: #94a3b8; }
+      .model { fill: #fff7f7; stroke: #ef4444; }
+      .sql { fill: #f5f3ff; stroke: #8b5cf6; }
       .node { stroke-width: 2; }
-      .source-node { fill: #fff; stroke: #64748b; }
-      .api-node { fill: #e0e7ff; stroke: #6366f1; }
-      .db-node { fill: #ede9fe; stroke: #8b5cf6; }
-      .model-node { fill: #fee2e2; stroke: #ef4444; }
-      .result-node { fill: #fef3c7; stroke: #f59e0b; }
-      .label { font-size: 16px; font-weight: 650; text-anchor: middle; }
+      .input { fill: #fff; stroke: #94a3b8; }
+      .calculation { fill: #fee2e2; stroke: #ef4444; }
+      .rules { fill: #ede9fe; stroke: #8b5cf6; }
+      .result { fill: #fef3c7; stroke: #f59e0b; }
+      .title { font-size: 20px; font-weight: 700; }
+      .label { font-size: 17px; font-weight: 650; text-anchor: middle; }
       .detail { font-size: 14px; fill: #475569; text-anchor: middle; }
-      .edge { fill: none; stroke: #52627a; stroke-width: 2.5; marker-end: url(#arrow); stroke-linecap: round; stroke-linejoin: round; }
-      .edge-data { stroke: #64748b; }
-      .edge-api { stroke: #4f46e5; }
-      .edge-db { stroke: #7c3aed; }
-      .edge-result { stroke: #d97706; }
-      .edge-label { font-size: 12px; font-weight: 650; fill: #475569; text-anchor: middle; }
-      .step { fill: #4338ca; }
-      .step-text { fill: #fff; font-size: 12px; font-weight: 700; text-anchor: middle; dominant-baseline: middle; }
+      .edge { fill: none; stroke-width: 2.5; stroke-linejoin: round; }
+      .data-edge { stroke: #64748b; marker-end: url(#arrow); }
+      .rules-edge { stroke: #6d28d9; marker-end: url(#arrow-rules); }
+      .result-edge { stroke: #b45309; marker-end: url(#arrow-result); }
+      .edge-label { font-size: 14px; font-weight: 600; text-anchor: middle; }
     </style>
   </defs>
 
-  <rect class="group source-group" x="24" y="126" width="300" height="400" rx="16"/>
-  <text class="title" x="48" y="164">Databricks</text>
-  <rect class="node source-node" x="50" y="190" width="248" height="70" rx="10"/>
-  <text class="label" x="174" y="220">Recepciones históricas</text>
-  <text class="detail" x="174" y="242">Datos de entrada</text>
-  <rect class="node source-node" x="50" y="282" width="248" height="70" rx="10"/>
-  <text class="label" x="174" y="312">Recepciones</text>
-  <text class="detail" x="174" y="334">Datos de entrada</text>
-  <rect class="node source-node" x="50" y="374" width="248" height="70" rx="10"/>
-  <text class="label" x="174" y="404">Maestro de stock</text>
-  <text class="detail" x="174" y="426">Datos de entrada</text>
+  <rect class="group source" x="24" y="70" width="300" height="490" rx="16"/>
+  <text class="title" x="48" y="111">Databricks</text>
+  <text class="detail" x="174" y="141">Datos recuperados por el modelo</text>
+  <rect class="node input" x="50" y="180" width="248" height="70" rx="10"/>
+  <text class="label" x="174" y="222">Recepciones históricas</text>
+  <rect class="node input" x="50" y="280" width="248" height="70" rx="10"/>
+  <text class="label" x="174" y="322">Recepciones</text>
+  <rect class="node input" x="50" y="380" width="248" height="70" rx="10"/>
+  <text class="label" x="174" y="422">Maestro de stock</text>
 
-  <rect class="group model-group" x="420" y="126" width="360" height="400" rx="16"/>
-  <text class="title" x="444" y="164">Modelo matemático</text>
-  <rect class="node model-node" x="452" y="220" width="296" height="110" rx="12"/>
-  <text class="label" x="600" y="258">Combina datos y reglas</text>
-  <text class="detail" x="600" y="284">Calcula la sugerencia</text>
-  <rect class="node result-node" x="472" y="390" width="256" height="76" rx="12"/>
-  <text class="label" x="600" y="428">Sugerencia calculada</text>
+  <rect class="group model" x="450" y="70" width="360" height="490" rx="16"/>
+  <text class="title" x="478" y="111">Modelo matemático</text>
+  <text class="detail" x="630" y="141">En cada ejecución</text>
+  <rect class="node calculation" x="480" y="195" width="300" height="155" rx="12"/>
+  <text class="label" x="630" y="252">Combina datos y reglas</text>
+  <text class="detail" x="630" y="285">Mismo procesamiento</text>
+  <text class="detail" x="630" y="312">Calcula la sugerencia</text>
+  <rect class="node result" x="480" y="410" width="300" height="90" rx="12"/>
+  <text class="label" x="630" y="462">Sugerencia calculada</text>
 
-  <rect class="group api-group" x="900" y="126" width="290" height="400" rx="16"/>
-  <text class="title" x="924" y="164">Servicio</text>
-  <rect class="node api-node" x="926" y="260" width="238" height="130" rx="14"/>
-  <text class="label" x="1045" y="301">Abastecimiento API</text>
-  <text class="detail" x="1045" y="332">Consulta y devuelve reglas</text>
-  <text class="detail" x="1045" y="355">Devuelve la sugerencia</text>
+  <rect class="group sql" x="1050" y="70" width="466" height="490" rx="16"/>
+  <text class="title" x="1078" y="111">Una misma base SQL</text>
+  <text class="detail" x="1283" y="141">Tres entidades · Lectura y escritura directa</text>
+  <rect class="node rules" x="1080" y="180" width="406" height="70" rx="10"/>
+  <text class="label" x="1283" y="209">Proveedores</text>
+  <text class="detail" x="1283" y="232">Reglas que lee el modelo</text>
+  <rect class="node rules" x="1080" y="280" width="406" height="70" rx="10"/>
+  <text class="label" x="1283" y="309">Materiales</text>
+  <text class="detail" x="1283" y="332">Reglas que lee el modelo</text>
+  <rect class="node result" x="1080" y="410" width="406" height="90" rx="10"/>
+  <text class="label" x="1283" y="447">Tabla de control</text>
+  <text class="detail" x="1283" y="474">Sugerencia de compra guardada</text>
 
-  <rect class="group db-group" x="1300" y="126" width="216" height="400" rx="16"/>
-  <text class="title" x="1324" y="164">Reglas</text>
-  <rect class="node db-node" x="1320" y="260" width="176" height="130" rx="14"/>
-  <text class="label" x="1408" y="301">Base SQL</text>
-  <text class="detail" x="1408" y="332">Proveedores</text>
-  <text class="detail" x="1408" y="355">y materiales</text>
+  <path class="edge data-edge" d="M298 215 H350 V240 H480"/>
+  <path class="edge data-edge" d="M298 315 H350 V272 H480"/>
+  <path class="edge data-edge" d="M298 415 H370 V305 H480"/>
+  <text class="edge-label" x="388" y="192">Recupera datos</text>
 
-  <rect class="group db-group" x="1080" y="570" width="436" height="130" rx="16"/>
-  <text class="title" x="1104" y="604">Base de datos · Tabla de control</text>
-  <rect class="node result-node" x="1112" y="622" width="372" height="52" rx="12"/>
-  <text class="label" x="1298" y="654">Sugerencia de compra guardada</text>
+  <path class="edge rules-edge" d="M1080 215 H780"/>
+  <text class="edge-label" x="930" y="199">Lee proveedores</text>
+  <path class="edge rules-edge" d="M1080 315 H780"/>
+  <text class="edge-label" x="930" y="299">Lee materiales</text>
 
-  <path class="edge edge-data" d="M324 290 H452"/>
-  <text class="edge-label" x="388" y="310">Recupera datos</text>
+  <path class="edge result-edge" d="M630 350 V410"/>
+  <text class="edge-label" x="690" y="385">Resultado</text>
+  <path class="edge result-edge" d="M780 455 H1080"/>
+  <text class="edge-label" x="930" y="436">Escribe la sugerencia</text>
+  <text class="detail" x="930" y="484">Directamente en la misma base</text>
 
-  <path class="edge edge-api" d="M748 220 H820 V272 H926"/>
-  <circle class="step" cx="820" cy="204" r="11"/>
-  <text class="step-text" x="820" y="204">1</text>
-  <text class="edge-label" x="844" y="253">Solicita reglas</text>
-
-  <path class="edge edge-api" d="M926 368 H820 V308 H748"/>
-  <circle class="step" cx="820" cy="392" r="11"/>
-  <text class="step-text" x="820" y="392">4</text>
-  <text class="edge-label" x="838" y="346">Devuelve reglas</text>
-
-  <path class="edge edge-db" d="M1164 278 H1320"/>
-  <circle class="step" cx="1242" cy="260" r="11"/>
-  <text class="step-text" x="1242" y="260">2</text>
-  <text class="edge-label" x="1242" y="298">Consulta reglas</text>
-
-  <path class="edge edge-db" d="M1320 370 H1164"/>
-  <circle class="step" cx="1242" cy="390" r="11"/>
-  <text class="step-text" x="1242" y="390">3</text>
-  <text class="edge-label" x="1242" y="415">Devuelve reglas</text>
-
-  <path class="edge edge-api" d="M600 330 V390"/>
-  <text class="edge-label" x="600" y="362">Calcula resultado</text>
-
-  <path class="edge edge-result" d="M600 466 V648 H1112"/>
-  <text class="edge-label" x="830" y="632">El modelo escribe directamente · Sin pasar por la API</text>
-  <text class="detail" x="770" y="734">El flujo termina con la sugerencia guardada en la tabla de control.</text>
+  <text class="detail" x="770" y="610">Sin intervención de la API. El flujo termina con la sugerencia guardada en la tabla de control.</text>
 </svg>

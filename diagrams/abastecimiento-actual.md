@@ -39,9 +39,9 @@ El notebook de Python está conectado a Databricks para recuperar la informació
 
 ## Etapa 1: generación de sugerencia (flujo propuesto)
 
-La propuesta mantiene el procesamiento del modelo matemático. En cada ejecución, el modelo solicita a **Abastecimiento API** las reglas de proveedores y materiales; la API las consulta en una base SQL y se las devuelve. El modelo también recupera de Databricks las recepciones históricas, las recepciones y el maestro de stock. Con ambos insumos calcula la sugerencia y **la escribe directamente en la tabla de control de la base de datos**, sin pasar por la API. Este flujo termina con la sugerencia guardada.
+La propuesta mantiene el procesamiento del modelo matemático. En cada ejecución, el modelo **lee directamente de una base SQL** las reglas de proveedores y materiales. También recupera de Databricks las recepciones históricas, las recepciones y el maestro de stock. Combina esos insumos, calcula la sugerencia de compra y **escribe el resultado directamente en la tabla de control de la misma base SQL**.
 
-Abastecimiento API devuelve la sugerencia de compra; el mecanismo con el que recupera el resultado guardado todavía no está relevado. No se representa una entrega directa del resultado desde el modelo a la API.
+La base SQL contiene tres entidades importantes: **proveedores**, **materiales** y **tabla de control**. Las dos primeras son entradas del modelo; la tercera guarda la sugerencia calculada. No interviene Abastecimiento API en estas lecturas ni en la escritura. Este flujo termina con la sugerencia guardada.
 
 ```mermaid
 flowchart LR
@@ -52,18 +52,18 @@ flowchart LR
     end
     DB[Databricks]
     MOD[Modelo matemático de abastecimiento]
-    ABA[Abastecimiento API]
-    SQL[(Base SQL\nReglas de proveedores y materiales)]
-    CTRL[(Base de datos: tabla de control)]
+    subgraph SQL[Una misma base SQL]
+        PR[Proveedores: reglas]
+        MA[Materiales: reglas]
+        CTRL[Tabla de control: sugerencia de compra]
+    end
 
     RH --> DB
     RE --> DB
     ST --> DB
     DB -->|Datos| MOD
-    MOD -->|Solicita reglas| ABA
-    ABA -->|Consulta| SQL
-    SQL -->|Reglas| ABA
-    ABA -->|Devuelve reglas| MOD
+    PR -->|Lectura directa en cada ejecución| MOD
+    MA -->|Lectura directa en cada ejecución| MOD
     MOD -->|Escribe directamente la sugerencia| CTRL
 ```
 
