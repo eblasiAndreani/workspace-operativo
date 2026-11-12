@@ -2,7 +2,7 @@ const stageDescriptions = {
   "current-stage-1": "Un notebook de Python conectado a Databricks recupera recepciones históricas, recepciones, stock, materiales y proveedores. Combina estos datos con reglas de proveedores y SKU en Excel y aplica el modelo matemático para generar un Excel de sugerencia de compra. Falta relevar la continuación hasta la orden de compra.",
   "current-stage-2": "La orden de compra llega a SAP de forma indirecta. La API de sugerencia la envía a la API de abastecimiento, que crea la ASN en SCE/WMS. La integración de almacenes escucha los eventos de la ASN, guarda la novedad y la publica en SAP a través de SAP PO: al crearse la ASN envía el alta de la OC (Tipo 1) y al verificarse, la recepción (Tipo 2).",
   "current-stage-3": "Etapa pendiente de relevar y ordenar antes de definir una propuesta para gerencia.",
-  "proposed-stage-1": "La propuesta mantiene el procesamiento existente para generar la sugerencia, pero obtiene las reglas de proveedores y materiales desde una base SQL. En cada ejecución del modelo se combinan esas reglas con las recepciones históricas, las recepciones y el maestro de stock recuperados de Databricks. La continuación hasta la orden de compra sigue pendiente de relevar.",
+  "proposed-stage-1": "En cada ejecución, el modelo obtiene las reglas de proveedores y materiales mediante Abastecimiento API. El servicio consulta las reglas en SQL y las devuelve al modelo, que las combina con recepciones históricas, recepciones y stock de Databricks para generar la sugerencia de compra. Este flujo termina en la sugerencia.",
   "proposed-stage-2": "La API de sugerencia envía el alta de la OC (Tipo 1) directo a SAP PO al generarla y guarda la respuesta, sin depender de la ASN ni de almacenes. El envío a SCE/WMS se mantiene: la recepción (Tipo 2) sigue saliendo de almacenes, que deja de publicar el Tipo 1 de estas órdenes para evitar duplicados.",
   "proposed-stage-3": "Etapa pendiente de pulir y presentar como propuesta a gerencia."
 };
@@ -93,8 +93,8 @@ function updateStage() {
   if (stageId === "proposed-stage-1") {
     const diagram = document.createElement("img");
     diagram.className = "stage-proposed-diagram";
-    diagram.src = "abastecimiento-propuesto.svg";
-    diagram.alt = "Diagrama propuesto: reglas de proveedores y materiales en SQL se combinan en cada ejecución del modelo con recepciones históricas, recepciones y stock de Databricks para generar la sugerencia de compra.";
+    diagram.src = "abastecimiento-propuesto.svg?v=2";
+    diagram.alt = "Flujo propuesto: el modelo obtiene recepciones, recepciones históricas y stock de Databricks, y solicita las reglas mediante Abastecimiento API. La API consulta la base SQL y devuelve las reglas al modelo, que genera la sugerencia de compra.";
     stageOverview.append(diagram);
   }
 

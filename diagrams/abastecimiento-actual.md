@@ -39,7 +39,7 @@ El notebook de Python está conectado a Databricks para recuperar la informació
 
 ## Etapa 1: generación de sugerencia (flujo propuesto)
 
-La propuesta mantiene el procesamiento actual para generar la sugerencia, pero obtiene las reglas de proveedores y materiales desde una base SQL. Cada ejecución del modelo recibe esas reglas y las combina con las recepciones históricas, las recepciones y el maestro de stock obtenidos de Databricks. El formato de salida de la sugerencia no está especificado en este flujo.
+La propuesta mantiene el procesamiento existente para generar la sugerencia. En cada ejecución, el modelo obtiene las reglas de proveedores y materiales mediante **Abastecimiento API**; el servicio las consulta en una base SQL y las devuelve al modelo. En paralelo, el modelo recibe de Databricks las recepciones históricas, las recepciones y el maestro de stock. Con esos datos y reglas calcula la sugerencia de compra. El flujo termina en la sugerencia; los pasos posteriores aún no están definidos.
 
 ```mermaid
 flowchart LR
@@ -48,25 +48,19 @@ flowchart LR
         RE[Recepciones]
         ST[Maestro de stock]
     end
-    subgraph SQL[Base de datos SQL]
-        RP[Reglas de proveedores]
-        RM[Reglas de materiales]
-    end
-    EJ[Ejecución del modelo]
-    subgraph PROCESO[Procesamiento existente]
-        NB[Combina datos y reglas]
-        MOD[Modelo de abastecimiento]
-        NB --> MOD
-    end
+    MOD[Modelo de abastecimiento]
+    ABA[Abastecimiento API]
+    SQL[(Base SQL\nReglas de proveedores y materiales)]
     SUG[Sugerencia de compra]
 
-    RH --> EJ
-    RE --> EJ
-    ST --> EJ
-    RP -->|Se envían en cada ejecución| EJ
-    RM -->|Se envían en cada ejecución| EJ
-    EJ --> NB
-    MOD --> SUG
+    RH --> MOD
+    RE --> MOD
+    ST --> MOD
+    MOD -->|Solicita reglas en cada ejecución| ABA
+    ABA -->|Consulta| SQL
+    SQL -->|Reglas| ABA
+    ABA -->|Devuelve reglas| MOD
+    MOD -->|Calcula| SUG
 ```
 
 La continuación desde la sugerencia hasta la generación de la orden de compra todavía está pendiente de relevar.
