@@ -6,7 +6,7 @@
     <meta name="description" content="Flujos actual y propuesto de abastecimiento, organizados en tres etapas.">
     <title>Abastecimiento · Workspace operativo</title>
     <link rel="stylesheet" href="styles.css">
-    <script src="app.js?v=asn-creada-1" defer></script>
+    <script src="app.js?v=recepcion-confirmada-1" defer></script>
   </head>
   <body>
     <header class="page-header">
@@ -324,9 +324,9 @@
           </svg>
         </div>
         <div id="proposed-billing-diagram" class="diagram-scroll" hidden>
-          <svg class="flowchart" viewBox="0 0 1600 1080" role="group" aria-labelledby="proposal-title proposal-description">
+          <svg class="flowchart" viewBox="0 0 1600 1440" role="group" aria-labelledby="proposal-title proposal-description">
             <title id="proposal-title">Propuesta: sugerencia, orden de compra, ASN versionada y SAP</title>
-            <desc id="proposal-description">La API de sugerencia de abastecimiento genera la OC y la ASN versionada. Debajo se envía la OC a SAP y se muestran dos salidas: HTTP 200 y OK hacia SCE mediante Abastecimiento API, o error con tratamiento pendiente. Una ASN rechazada requiere otra nueva. Del lado de SAP puede haber rechazo posterior al 200 y no existe servicio de consulta del estado de la transacción SAP.</desc>
+            <desc id="proposal-description">La API de sugerencia de abastecimiento genera la OC y la ASN versionada y envía a SAP. Con HTTP 200 y OK continúa a SCE mediante Abastecimiento API, o ante error queda pendiente la recuperación. Después de ASN creada se debe escuchar EventoWh-RecepcionAsnConfirmada por identificador de ASN para reconocer la recepción de mercadería y validar la actualización del stock de materiales en SAP. Hoy no existe GET de esa transacción SAP, por lo que la validación queda pendiente.</desc>
             <defs>
               <marker id="arrow-proposal" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto">
                 <path d="M0,0 L10,4 L0,8 Z" fill="#64748b"></path>
@@ -346,6 +346,11 @@
               <path d="M590 600 V660 H410 V720" marker-end="url(#arrow-proposal)"></path>
               <path d="M1230 600 V700" marker-end="url(#arrow-proposal)"></path>
               <path d="M430 350 H370" class="dashed" marker-end="url(#arrow-proposal)"></path>
+              <path d="M1230 800 V940" class="dashed" marker-end="url(#arrow-proposal)"></path>
+              <path d="M1030 1010 H820" marker-end="url(#arrow-proposal)"></path>
+              <path d="M585 1080 V1160" marker-end="url(#arrow-proposal)"></path>
+              <text x="1245" y="872" class="edge-label">Posteriormente · Recepción de mercadería</text>
+              <text x="925" y="991" class="edge-label" text-anchor="middle">ID de ASN</text>
               <text x="890" y="520" class="edge-label" text-anchor="middle">OK · HTTP 200 + IsOk TRUE</text>
               <text x="605" y="638" class="edge-label">Error / rechazo / timeout</text>
               <text x="1245" y="654" class="edge-label">Envío a SCE</text>
@@ -434,8 +439,33 @@
                 <tspan x="200" dy="26">Detección y recuperación sin definir.</tspan>
               </text>
             </g>
-            <text x="30" y="1015" class="edge-label">La API de sugerencia de abastecimiento orquesta el flujo; los tratamientos de error siguen abiertos.</text>
-            <text x="30" y="1045" class="edge-label">En esta parte del flujo, SCE únicamente genera el evento ASN creada; no se detalla su procesamiento posterior.</text>
+            <g class="node source-node">
+              <rect x="1030" y="940" width="520" height="140" rx="12"></rect>
+              <text x="1290" y="976">
+                <tspan x="1290">Escuchar EventoWh-RecepcionAsnConfirmada</tspan>
+                <tspan x="1290" dy="28">Confirma la recepción de mercadería</tspan>
+                <tspan x="1290" dy="26">Correlacionar por identificador de ASN</tspan>
+                <tspan x="1290" dy="26">Componente consumidor pendiente de definir</tspan>
+              </text>
+            </g>
+            <g class="node destination-node">
+              <rect x="350" y="940" width="470" height="140" rx="12"></rect>
+              <text x="585" y="981">
+                <tspan x="585">Validar actualización de stock en SAP</tspan>
+                <tspan x="585" dy="28">Materiales de la ASN recibida</tspan>
+                <tspan x="585" dy="28">Objetivo de validación · No confirmado</tspan>
+              </text>
+            </g>
+            <g class="node note">
+              <rect x="250" y="1160" width="670" height="130" rx="12"></rect>
+              <text x="585" y="1196">
+                <tspan x="585">BRECHA DE SAP · Sin GET de la transacción de stock</tspan>
+                <tspan x="585" dy="28">No se puede confirmar su estado mediante una consulta disponible.</tspan>
+                <tspan x="585" dy="28">Validación, conciliación y recuperación pendientes de definir.</tspan>
+              </text>
+            </g>
+            <text x="30" y="1360" class="edge-label">La API de sugerencia de abastecimiento orquesta la OC; la escucha del evento de recepción es un paso posterior propuesto.</text>
+            <text x="30" y="1390" class="edge-label">Recibir el evento confirma la recepción de mercadería, no acredita por sí solo que SAP haya actualizado el stock.</text>
           </svg>
         </div>
       </section>

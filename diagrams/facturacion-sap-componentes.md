@@ -23,7 +23,7 @@ Qué hace, recibe y devuelve cada bloque de los diagramas de [Facturación en SA
 - **Rol:** sistema de almacén donde vive la ASN con la que se recibe la mercadería.
 - **Crea** la ASN con las líneas de la OC y la **verifica** cuando llega la mercadería.
 - **Emite** un [evento de ASN](#evento-de-asn) en cada paso.
-- **En la propuesta:** SCE únicamente genera el evento ASN creada tras el envío vía Abastecimiento API, después del OK de SAP. No se le atribuyen recepción física ni actualización de stock en esta parte del flujo; el procesamiento posterior del evento no se detalla. La ASN versionada debe permitir que el worker de WMS no genere otra OC. Una ASN rechazada no se reutiliza: requiere otra nueva; generación, correlación y recuperación pendientes de definir.
+- **En la propuesta:** tras el envío vía Abastecimiento API y el OK de SAP, SCE genera el evento ASN creada. Posteriormente se debe escuchar `EventoWh-RecepcionAsnConfirmada`, que indica recepción de mercadería, y correlacionarlo por identificador de ASN para validar la actualización del stock en SAP. La ASN versionada debe permitir que el worker de WMS no genere otra OC. Una ASN rechazada no se reutiliza: requiere otra nueva; generación, correlación y recuperación pendientes de definir.
 
 ## Evento de ASN
 
@@ -31,7 +31,7 @@ Qué hace, recibe y devuelve cada bloque de los diagramas de [Facturación en SA
 - **Eventos usados:** ASN creada → Tipo 1 (alta de la OC) · ASN verificada → Tipo 2 (recepción).
 - **Cabecera:** `evento`, `fechaHoraGeneracion`, `propietario`, `recepcionWh`, `referenciaProveedor`, `asnOriginalEcommerce`, `codigoCliente`, `almacen`, `instancia` y `ordenExterna`.
 - **Detalle por línea:** `lineaExterna`, `sku`, `cantEsperada`, `cantRecibida`, `almacenConsumo` y `nomenclaturaContratoServicioIngreso` (prefijo DV = nota de crédito).
-- **En la propuesta:** SCE genera el evento ASN creada; su procesamiento posterior y la publicación Tipo 2 no se definen aquí.
+- **En la propuesta:** se distingue ASN creada de `EventoWh-RecepcionAsnConfirmada`. Este último indica recepción de mercadería y debe escucharse y correlacionarse por identificador de ASN. El consumidor y el mecanismo de actualización de stock en SAP están por definir; no se presupone publicación Tipo 2 ni que el evento confirme el éxito en SAP.
 
 ## Suscriptor de novedades
 
@@ -76,3 +76,4 @@ Qué hace, recibe y devuelve cada bloque de los diagramas de [Facturación en SA
 - **Devuelve**, vía SAP PO, el n° de OC en SAP (`OrdenCompraSAP`) y un `TransactionIdSAP` para reintentos.
 - **Validaciones de negocio:** a confirmar con SAP ([puntos abiertos](facturacion-sap.md#puntos-abiertos)).
 - **Brecha en la propuesta:** SAP puede rechazar la transacción después de responder HTTP 200. Hoy no existe servicio de consulta de su estado en SAP; detección, conciliación y recuperación pendientes de definir.
+- **Stock tras la recepción:** se debe validar la actualización de los materiales de la ASN confirmada. Hoy no existe GET de esa transacción SAP; no se representa una consulta implementada ni una actualización confirmada.

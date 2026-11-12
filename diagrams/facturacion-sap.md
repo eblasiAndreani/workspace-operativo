@@ -171,7 +171,11 @@ La misma API de sugerencia de abastecimiento envía la OC a SAP por SAP PO (Tipo
 
 **Restricciones y brechas confirmadas:** una ASN rechazada no puede reutilizarse; se debe generar otra. **Del lado de SAP**, puede producirse un rechazo posterior a un HTTP 200. Actualmente **no existe un servicio de consulta para conocer el estado de la transacción SAP**, por lo que recibir el 200 no garantiza su estado final en SAP. La detección del rechazo tardío, la conciliación y la recuperación quedan pendientes de definir. Un timeout tampoco demuestra que la transacción haya sido rechazada: no se define regeneración ni reenvío automático.
 
-SCE se muestra como destino de la llamada vía Abastecimiento API y generador del evento ASN creada. El procesamiento posterior del evento, suscriptor y publicador queda fuera de esta parte del flujo propuesto. Esto no modifica el [flujo actual](#flujo-actual) ni define cómo se realizará una eventual publicación Tipo 2. La consulta por `idTransaccion` descrita para la API de abastecimiento del flujo actual no se asume disponible para resolver esta brecha del nuevo flujo. El reconocimiento de la ASN versionada por el worker es un requisito de integración, no un mecanismo ya validado.
+SCE se muestra como destino de la llamada vía Abastecimiento API y generador del evento ASN creada. Posteriormente, al recibirse la mercadería, **se debe escuchar `EventoWh-RecepcionAsnConfirmada` y correlacionarlo por el identificador de ASN**. Ese evento confirma la recepción de mercadería; luego se debe **validar que SAP actualice el stock de los materiales de esa ASN**. Recibir el evento no acredita por sí solo la actualización en SAP.
+
+**Hoy no existe GET de la transacción de actualización de stock en SAP.** La validación del resultado, conciliación y recuperación quedan pendientes de definir. Tampoco se define aún el componente que escuchará el evento ni el mecanismo que provoca la actualización en SAP; no se presupone que ya exista un consumidor, una consulta ni un envío Tipo 2 en este flujo propuesto.
+
+Esto no modifica el [flujo actual](#flujo-actual). La consulta por `idTransaccion` descrita para la API de abastecimiento del flujo actual no se asume disponible para resolver las brechas de SAP. El reconocimiento de la ASN versionada por el worker es un requisito de integración, no un mecanismo ya validado.
 
 ```mermaid
 sequenceDiagram
@@ -180,6 +184,7 @@ sequenceDiagram
     participant SAP as SAP PO → SAP
     participant ABA as API de abastecimiento
     participant SCE as SCE
+    participant REC as Escucha de recepción (por definir)
 
     CTRL-->>SUG: Sugerencia de compra
     SUG->>SUG: Genera OC y distribuye materiales según almacén
@@ -193,6 +198,10 @@ sequenceDiagram
         ABA->>SCE: Envía la OC / ASN versionada
         SCE->>SCE: Genera evento ASN creada
         Note over SUG,SAP: SAP puede rechazar después del 200; no hay servicio de consulta del estado SAP
+        SCE-)REC: Posteriormente: EventoWh-RecepcionAsnConfirmada
+        REC->>REC: Correlaciona por identificador de ASN
+        Note over REC,SAP: Validar actualización del stock de materiales en SAP
+        Note over REC,SAP: Hoy no hay GET de esa transacción; validación y recuperación pendientes
     else Error de SAP / IsOk FALSE / timeout
         Note over SUG: No llama a Abastecimiento API; tratamiento pendiente
     end
@@ -212,6 +221,8 @@ sequenceDiagram
 - [ ] Definir tratamiento de errores y timeouts antes de automatizar reenvíos: no existe hoy consulta del estado de la transacción SAP.
 - [ ] Llamar a Abastecimiento API para el envío a SCE solo después del OK de SAP; SCE genera el evento ASN creada.
 - [ ] Registrar errores y definir recuperación si SAP acepta la OC pero falla Abastecimiento API.
+- [ ] Definir el consumidor de `EventoWh-RecepcionAsnConfirmada` y correlacionar la recepción con la ASN versionada y la OC.
+- [ ] Definir cómo validar la actualización del stock de materiales en SAP: hoy no existe GET de esa transacción.
 - [ ] Tests: reparto de materiales, ASN versionada, mapper, validaciones, respuesta OK, `IsOk = "FALSE"`, 400/401, timeout y no invocar Abastecimiento API sin OK de SAP.
 
 ### Puntos abiertos
@@ -228,7 +239,9 @@ sequenceDiagram
 - **Largos**: los ejemplos del contrato para `Proveedor`, `Pedido` y `ASN` tienen 12 caracteres, pero el máximo declarado es 10.
 - **Validaciones de SAP**: qué controla SAP (proveedor, material, centro, almacén, OC duplicada) y con qué `Codigo` responde cada caso.
 - **Reintento sin respuesta**: si reenviar un envío que quedó sin respuesta (timeout) puede duplicar la OC en SAP.
-- **Envío a SCE**: endpoint, request y respuesta de Abastecimiento API. El procesamiento posterior del evento ASN creada no se detalla en esta parte del flujo.
+- **Envío a SCE**: endpoint, request y respuesta de Abastecimiento API.
+- **Recepción confirmada**: consumidor, contrato y campo del identificador de ASN en `EventoWh-RecepcionAsnConfirmada`; manejo de eventos duplicados y correlación con versiones de ASN.
+- **Stock en SAP**: mecanismo de actualización y validación de los materiales recibidos; hoy no existe GET de la transacción. Definir conciliación y recuperación sin asumir actualización exitosa por recibir el evento.
 - **Falla posterior a SAP**: cómo recuperar el envío a SCE si SAP ya aceptó la OC pero falla Abastecimiento API.
-- **Tipo 2**: fuera del alcance de este diagrama; no se mantiene como supuesto el circuito anterior de almacenes.
+- **Tipo 2**: mecanismo por definir para la propuesta; no se mantiene como supuesto el circuito anterior de almacenes.
 - **Accesos**: usuario técnico de SAP PO y acceso de red desde la API de sugerencia.
