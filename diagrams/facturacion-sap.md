@@ -167,9 +167,11 @@ Las validaciones de negocio de SAP (proveedor, material, centro y almacén exist
 
 La **API de sugerencia de abastecimiento** gestiona toda esta secuencia: toma la **sugerencia de compra guardada en la tabla de control**, genera una orden de compra que distribuye los materiales según el almacén donde deben gestionarse y arma un **número de ASN versionado**, que debe permitir que el worker de WMS reconozca estas órdenes y no genere otra OC.
 
-La misma API de sugerencia de abastecimiento envía la OC a SAP por SAP PO (Tipo 1), valida y guarda la respuesta. **Solo con HTTP 200 y resultado OK** llama a **Abastecimiento API para la recepción y actualización de stock**. Según el contrato documentado, un HTTP 200 con `IsOk = "FALSE"` no es OK: no se continúa. Ante error o timeout, no llama a Abastecimiento API. Son dos servicios distintos: la API de sugerencia de abastecimiento orquesta el flujo; Abastecimiento API recibe la llamada posterior al OK de SAP.
+La misma API de sugerencia de abastecimiento envía la OC a SAP por SAP PO (Tipo 1), valida y guarda la respuesta. **Solo con HTTP 200 y resultado OK** llama a **Abastecimiento API para acceder a SCE y gestionar la recepción y actualización de stock**. Según el contrato documentado, un HTTP 200 con `IsOk = "FALSE"` no es OK: no se continúa. Ante error o timeout, no llama a Abastecimiento API; **el tratamiento del error no está definido**. Son dos servicios distintos: la API de sugerencia de abastecimiento orquesta el flujo; Abastecimiento API recibe la llamada posterior al OK de SAP.
 
-El circuito de almacenes (SCE/WMS, eventos de ASN, suscriptor y publicador) sale de esta parte del flujo propuesto. Esto no modifica el [flujo actual](#flujo-actual) ni define cómo se realizará una eventual publicación Tipo 2. El reconocimiento de la ASN versionada por el worker es un requisito de integración, no un mecanismo ya validado.
+**Restricciones y brechas confirmadas:** una ASN rechazada no puede reutilizarse; se debe generar otra. También puede producirse un rechazo posterior a un HTTP 200. Actualmente **no existe un servicio de consulta para conocer el estado de la transacción de este flujo**, por lo que recibir el 200 no garantiza su estado final. La detección del rechazo tardío, la conciliación y la recuperación quedan pendientes de definir. Un timeout tampoco demuestra que la transacción haya sido rechazada: no se define regeneración ni reenvío automático.
+
+SCE se muestra únicamente como destino de la llamada vía Abastecimiento API. El circuito de eventos de ASN, suscriptor y publicador sale de esta parte del flujo propuesto. Esto no modifica el [flujo actual](#flujo-actual) ni define cómo se realizará una eventual publicación Tipo 2. La consulta por `idTransaccion` descrita para la API de abastecimiento del flujo actual no se asume disponible para resolver esta brecha del nuevo flujo. El reconocimiento de la ASN versionada por el worker es un requisito de integración, no un mecanismo ya validado.
 
 ```mermaid
 sequenceDiagram
@@ -177,6 +179,7 @@ sequenceDiagram
     participant SUG as API de sugerencia de abastecimiento
     participant SAP as SAP PO → SAP
     participant ABA as API de abastecimiento
+    participant SCE as SCE
 
     CTRL-->>SUG: Sugerencia de compra
     SUG->>SUG: Genera OC y distribuye materiales según almacén
@@ -187,9 +190,12 @@ sequenceDiagram
     SUG->>SUG: Guarda estado y respuesta
     alt HTTP 200 e IsOk TRUE
         SUG->>ABA: Solicita recepción y actualización de stock
+        ABA->>SCE: Gestiona recepción y stock
+        Note over SUG,SCE: Posible rechazo posterior al 200: no hay servicio de consulta de estado
     else Error de SAP / IsOk FALSE / timeout
-        Note over SUG: Registra error y no llama a Abastecimiento API
+        Note over SUG: No llama a Abastecimiento API; tratamiento pendiente
     end
+    Note over SUG,SCE: ASN rechazada: requiere otra nueva; recuperación sin definir
 ```
 
 ### Checklist de implementación
@@ -201,8 +207,8 @@ sequenceDiagram
 - [ ] Mapper OC + ASN versionada → request Tipo 1 según la [tabla](#request) y las [validaciones](#validaciones).
 - [ ] Para continuar este flujo: HTTP `200` **y** `IsOk = "TRUE"`; cualquier otro caso queda como error con `Codigo` y `Mensaje`.
 - [ ] Guardar por OC: estado SAP, `OrdenCompraSAP`, `TransactionIdSAP`, mensaje y fecha.
-- [ ] No reenviar OC aceptadas; en reintentos, mandar el `TransactionIdSAP` recibido.
-- [ ] Reintento propio (endpoint o job): fuera del circuito de almacenes no hay reintento automático.
+- [ ] Definir política de reintentos y correlación con `TransactionIdSAP`, OC y nueva ASN; no asumir que se puede reutilizar una ASN rechazada.
+- [ ] Definir tratamiento de errores y timeouts antes de automatizar reenvíos: no existe hoy consulta de estado para este flujo.
 - [ ] Llamar a Abastecimiento API para recepción y actualización de stock solo después del OK de SAP.
 - [ ] Registrar errores y definir recuperación si SAP acepta la OC pero falla Abastecimiento API.
 - [ ] Tests: reparto de materiales, ASN versionada, mapper, validaciones, respuesta OK, `IsOk = "FALSE"`, 400/401, timeout y no invocar Abastecimiento API sin OK de SAP.
@@ -211,6 +217,9 @@ sequenceDiagram
 
 - **Distribución por almacén**: reglas de asignación de materiales y si se genera una OC por almacén o se separan sus líneas.
 - **ASN versionada**: formato, longitud, generación de versiones y cómo la reconoce el worker de WMS para no generar otra OC.
+- **ASN rechazada**: debe generarse otra; definir cuándo, quién lo hace, cómo se correlaciona y cómo se evita duplicar una OC.
+- **Rechazo posterior al 200**: hoy no existe servicio de consulta del estado de la transacción. Definir detección, conciliación y recuperación; el 200 no garantiza el estado final.
+- **Salida de error**: tratamiento pendiente, incluyendo rechazo explícito, errores técnicos y timeout; no se documenta un reintento automático como solución ya acordada.
 - **Pedido**: qué número enviar y cómo correlacionarlo con la OC, la ASN versionada y cualquier recepción posterior.
 - **Duplicados**: validar el reconocimiento de la ASN versionada y la idempotencia de los envíos.
 - **Cantidad**: la API envía bultos al WMS y el publicador no convierte por caja; confirmar si SAP espera bultos o unidades.

@@ -6,7 +6,7 @@
     <meta name="description" content="Flujos actual y propuesto de abastecimiento, organizados en tres etapas.">
     <title>Abastecimiento · Workspace operativo</title>
     <link rel="stylesheet" href="styles.css">
-    <script src="app.js?v=sugerencia-api-1" defer></script>
+    <script src="app.js?v=sap-errores-1" defer></script>
   </head>
   <body>
     <header class="page-header">
@@ -324,9 +324,9 @@
           </svg>
         </div>
         <div id="proposed-billing-diagram" class="diagram-scroll" hidden>
-          <svg class="flowchart" viewBox="0 0 1600 780" role="group" aria-labelledby="proposal-title proposal-description">
+          <svg class="flowchart" viewBox="0 0 1600 1080" role="group" aria-labelledby="proposal-title proposal-description">
             <title id="proposal-title">Propuesta: sugerencia, orden de compra, ASN versionada y SAP</title>
-            <desc id="proposal-description">La API de sugerencia de abastecimiento toma la sugerencia guardada, genera la OC distribuyendo los materiales por almacén y arma la ASN versionada. También gestiona el envío a SAP, valida su respuesta y solo con HTTP 200 y resultado OK llama a Abastecimiento API para recepción y actualización de stock. Ante error no avanza.</desc>
+            <desc id="proposal-description">La API de sugerencia de abastecimiento genera la OC y la ASN versionada. Debajo se envía la OC a SAP y se muestran dos salidas: HTTP 200 y OK hacia SCE mediante Abastecimiento API, o error con tratamiento pendiente. Una ASN rechazada requiere otra nueva. Puede haber rechazo posterior al 200 y hoy no existe servicio de consulta del estado de la transacción; su detección y recuperación no están definidas.</desc>
             <defs>
               <marker id="arrow-proposal" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto">
                 <path d="M0,0 L10,4 L0,8 Z" fill="#64748b"></path>
@@ -340,12 +340,15 @@
             <g class="edges" aria-hidden="true">
               <path d="M350 130 H430" marker-end="url(#arrow-proposal)"></path>
               <path d="M750 130 H830" marker-end="url(#arrow-proposal)"></path>
-              <path d="M1150 130 H1230" marker-end="url(#arrow-proposal)"></path>
-              <path d="M1390 190 V355" marker-end="url(#arrow-proposal)"></path>
-              <path d="M1230 415 H830" marker-end="url(#arrow-proposal)"></path>
-              <path d="M1390 475 V585" marker-end="url(#arrow-proposal)"></path>
-              <text x="1030" y="399" class="edge-label" text-anchor="middle">Sí · Solo con HTTP 200 + OK</text>
-              <text x="1405" y="540" class="edge-label">No / error / timeout</text>
+              <path d="M990 190 V250 H590 V300" marker-end="url(#arrow-proposal)"></path>
+              <path d="M590 400 V480" marker-end="url(#arrow-proposal)"></path>
+              <path d="M750 540 H1030" marker-end="url(#arrow-proposal)"></path>
+              <path d="M590 600 V660 H410 V720" marker-end="url(#arrow-proposal)"></path>
+              <path d="M1230 600 V700" marker-end="url(#arrow-proposal)"></path>
+              <path d="M1230 800 V840" class="dashed" marker-end="url(#arrow-proposal)"></path>
+              <text x="890" y="520" class="edge-label" text-anchor="middle">OK · HTTP 200 + IsOk TRUE</text>
+              <text x="605" y="638" class="edge-label">Error / rechazo / timeout</text>
+              <text x="1245" y="654" class="edge-label">Recepción y actualización de stock</text>
             </g>
             <g class="node source-node">
               <rect x="30" y="70" width="320" height="120" rx="12"></rect>
@@ -377,45 +380,61 @@
             <a class="node-link" href="https://github.com/eblasiAndreani/workspace-operativo/blob/main/diagrams/facturacion-sap.md#api-de-sap-po" target="_blank" rel="noopener">
               <title>Ver detalle: API de SAP PO</title>
               <g class="node destination-node">
-                <rect x="1230" y="70" width="320" height="120" rx="12"></rect>
-                <text x="1390" y="112">
-                  <tspan x="1390">Enviar la OC a SAP</tspan>
-                  <tspan x="1390" dy="25">Vía SAP PO · Alta de la OC</tspan>
+                <rect x="430" y="300" width="320" height="100" rx="12"></rect>
+                <text x="590" y="337">
+                  <tspan x="590">Enviar la OC a SAP</tspan>
+                  <tspan x="590" dy="25">Vía SAP PO · Alta de la OC</tspan>
                 </text>
-                <text x="1530" y="90" class="link-icon" aria-hidden="true">↗</text>
+                <text x="730" y="320" class="link-icon" aria-hidden="true">↗</text>
               </g>
             </a>
             <g class="node destination-node">
-              <rect x="1230" y="355" width="320" height="120" rx="12"></rect>
-              <text x="1390" y="390">
-                <tspan x="1390">¿SAP responde HTTP 200 y OK?</tspan>
-                <tspan x="1390" dy="25">Validar también IsOk = TRUE</tspan>
-                <tspan x="1390" dy="22">y guardar la respuesta</tspan>
+              <rect x="430" y="480" width="320" height="120" rx="12"></rect>
+              <text x="590" y="515">
+                <tspan x="590">¿SAP responde HTTP 200 y OK?</tspan>
+                <tspan x="590" dy="25">Validar IsOk y guardar respuesta</tspan>
+                <tspan x="590" dy="22">No garantiza el estado final</tspan>
               </text>
             </g>
             <a class="node-link" href="https://github.com/eblasiAndreani/workspace-operativo/blob/main/diagrams/facturacion-sap-componentes.md#api-de-abastecimiento" target="_blank" rel="noopener">
               <title>Ver detalle: API de abastecimiento</title>
               <g class="node app-node">
-                <rect x="430" y="355" width="400" height="120" rx="12"></rect>
-                <text x="630" y="400">
-                  <tspan x="630">Llamar a Abastecimiento API</tspan>
-                  <tspan x="630" dy="25">Recepción y actualización de stock</tspan>
+                <rect x="1030" y="480" width="400" height="120" rx="12"></rect>
+                <text x="1230" y="525">
+                  <tspan x="1230">Llamar a Abastecimiento API</tspan>
+                  <tspan x="1230" dy="25">Acceso a SCE</tspan>
                 </text>
-                <text x="810" y="375" class="link-icon" aria-hidden="true">↗</text>
+                <text x="1410" y="500" class="link-icon" aria-hidden="true">↗</text>
               </g>
             </a>
             <g class="node note">
-              <rect x="1230" y="585" width="320" height="90" rx="12"></rect>
-              <text x="1390" y="618">
-                <tspan x="1390">Registrar error / No avanzar</tspan>
-                <tspan x="1390" dy="24">No llamar a Abastecimiento API</tspan>
+              <rect x="30" y="720" width="760" height="170" rx="12"></rect>
+              <text x="410" y="754">
+                <tspan x="410">ERROR · Tratamiento pendiente de definir</tspan>
+                <tspan x="410" dy="29">Si se rechaza la ASN, no puede reutilizarse: se debe generar otra.</tspan>
+                <tspan x="410" dy="27">Pendiente: cuándo regenerarla, cómo reintentar y cómo correlacionarla con la OC.</tspan>
+                <tspan x="410" dy="27">Timeout no confirma rechazo: no se define reenvío automático.</tspan>
+                <tspan x="410" dy="27">Sin OK de SAP no se avanza a Abastecimiento API.</tspan>
               </text>
             </g>
-            <text x="30" y="585" class="group-title">Alcance de esta propuesta</text>
-            <text x="30" y="560" class="edge-label">La API de sugerencia de abastecimiento también gestiona el envío a SAP y la llamada posterior a Abastecimiento API.</text>
-            <text x="30" y="618" class="edge-label">El circuito de almacenes, suscriptor y publicador no forma parte de este diagrama.</text>
-            <text x="30" y="648" class="edge-label">Pendiente: formato y reconocimiento de la ASN versionada por el worker de WMS.</text>
-            <text x="30" y="678" class="edge-label">Pendiente: contrato de recepción / stock y tratamiento de fallas después del OK de SAP.</text>
+            <g class="node source-node">
+              <rect x="1030" y="700" width="400" height="100" rx="12"></rect>
+              <text x="1230" y="737">
+                <tspan x="1230">SCE</tspan>
+                <tspan x="1230" dy="25">Recepción y actualización de stock</tspan>
+              </text>
+            </g>
+            <g class="node note">
+              <rect x="1010" y="840" width="540" height="130" rx="12"></rect>
+              <text x="1280" y="871">
+                <tspan x="1280">BRECHA · Posible rechazo posterior al HTTP 200</tspan>
+                <tspan x="1280" dy="26">Hoy no existe servicio de consulta del estado de la transacción.</tspan>
+                <tspan x="1280" dy="26">Detección, conciliación y recuperación pendientes.</tspan>
+                <tspan x="1280" dy="26">No se representa una consulta ni un reintento existente.</tspan>
+              </text>
+            </g>
+            <text x="30" y="1015" class="edge-label">La API de sugerencia de abastecimiento orquesta el flujo; los tratamientos de error siguen abiertos.</text>
+            <text x="30" y="1045" class="edge-label">Se muestra SCE solo como destino vía API, sin reintroducir el circuito de eventos, suscriptor y publicador.</text>
           </svg>
         </div>
       </section>

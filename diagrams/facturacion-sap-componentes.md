@@ -16,14 +16,14 @@ Qué hace, recibe y devuelve cada bloque de los diagramas de [Facturación en SA
 - **Responde:** `202` con un `idTransaccion`; la ASN se crea de forma asíncrona.
 - **Consulta:** el resultado por `idTransaccion` (Pendiente, Aceptado o Rechazado con motivo).
 - **Errores:** `{ title, detail, errors: [{ field, message }] }`.
-- **En la propuesta:** se llama después del OK de SAP para recepción y actualización de stock. El contrato de esa operación está pendiente; no se asume que mantenga el `202` ni el mismo request del flujo actual.
+- **En la propuesta:** se llama después del OK de SAP para gestionar recepción y actualización de stock en SCE. El contrato de esa operación está pendiente; no se asume que mantenga el `202`, el mismo request ni la consulta por `idTransaccion` del flujo actual. Hoy no existe servicio de consulta del estado de la transacción de este nuevo flujo; un rechazo posterior al 200 no tiene detección ni recuperación definidas.
 
 ## SCE / WMS
 
 - **Rol:** sistema de almacén donde vive la ASN con la que se recibe la mercadería.
 - **Crea** la ASN con las líneas de la OC y la **verifica** cuando llega la mercadería.
 - **Emite** un [evento de ASN](#evento-de-asn) en cada paso.
-- **En la propuesta:** fuera de esta parte del flujo. La ASN versionada debe permitir que el worker de WMS no genere otra OC; formato y reconocimiento pendientes de validar.
+- **En la propuesta:** SCE es el destino de recepción y actualización de stock vía Abastecimiento API, solo después del OK de SAP; el circuito de eventos permanece fuera del diagrama. La ASN versionada debe permitir que el worker de WMS no genere otra OC. Una ASN rechazada no se reutiliza: requiere otra nueva; generación, correlación y recuperación pendientes de definir.
 
 ## Evento de ASN
 
