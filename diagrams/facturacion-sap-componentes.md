@@ -16,7 +16,7 @@ Qué hace, recibe y devuelve cada bloque de los diagramas de [Facturación en SA
 - **Responde:** `202` con un `idTransaccion`; la ASN se crea de forma asíncrona.
 - **Consulta:** el resultado por `idTransaccion` (Pendiente, Aceptado o Rechazado con motivo).
 - **Errores:** `{ title, detail, errors: [{ field, message }] }`.
-- **En la propuesta:** se llama después del OK de SAP para gestionar recepción y actualización de stock en SCE. El contrato de esa operación está pendiente; no se asume que mantenga el `202`, el mismo request ni la consulta por `idTransaccion` del flujo actual. Hoy no existe servicio de consulta del estado de la transacción de este nuevo flujo; un rechazo posterior al 200 no tiene detección ni recuperación definidas.
+- **En la propuesta:** se llama después del OK de SAP para gestionar recepción y actualización de stock en SCE. El contrato de esa operación está pendiente; no se asume que mantenga el `202`, el mismo request ni la consulta por `idTransaccion` del flujo actual. La brecha de rechazo posterior al 200 y ausencia de consulta del estado corresponde a la transacción SAP, no a este servicio ni a SCE.
 
 ## SCE / WMS
 
@@ -75,3 +75,4 @@ Qué hace, recibe y devuelve cada bloque de los diagramas de [Facturación en SA
 - **Rol:** ERP donde se crea la OC (Tipo 1) y se registra la recepción de la mercadería (Tipo 2).
 - **Devuelve**, vía SAP PO, el n° de OC en SAP (`OrdenCompraSAP`) y un `TransactionIdSAP` para reintentos.
 - **Validaciones de negocio:** a confirmar con SAP ([puntos abiertos](facturacion-sap.md#puntos-abiertos)).
+- **Brecha en la propuesta:** SAP puede rechazar la transacción después de responder HTTP 200. Hoy no existe servicio de consulta de su estado en SAP; detección, conciliación y recuperación pendientes de definir. Esta limitación no corresponde a SCE.

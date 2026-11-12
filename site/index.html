@@ -6,7 +6,7 @@
     <meta name="description" content="Flujos actual y propuesto de abastecimiento, organizados en tres etapas.">
     <title>Abastecimiento · Workspace operativo</title>
     <link rel="stylesheet" href="styles.css">
-    <script src="app.js?v=sap-errores-1" defer></script>
+    <script src="app.js?v=brecha-sap-1" defer></script>
   </head>
   <body>
     <header class="page-header">
@@ -326,7 +326,7 @@
         <div id="proposed-billing-diagram" class="diagram-scroll" hidden>
           <svg class="flowchart" viewBox="0 0 1600 1080" role="group" aria-labelledby="proposal-title proposal-description">
             <title id="proposal-title">Propuesta: sugerencia, orden de compra, ASN versionada y SAP</title>
-            <desc id="proposal-description">La API de sugerencia de abastecimiento genera la OC y la ASN versionada. Debajo se envía la OC a SAP y se muestran dos salidas: HTTP 200 y OK hacia SCE mediante Abastecimiento API, o error con tratamiento pendiente. Una ASN rechazada requiere otra nueva. Puede haber rechazo posterior al 200 y hoy no existe servicio de consulta del estado de la transacción; su detección y recuperación no están definidas.</desc>
+            <desc id="proposal-description">La API de sugerencia de abastecimiento genera la OC y la ASN versionada. Debajo se envía la OC a SAP y se muestran dos salidas: HTTP 200 y OK hacia SCE mediante Abastecimiento API, o error con tratamiento pendiente. Una ASN rechazada requiere otra nueva. Del lado de SAP puede haber rechazo posterior al 200 y no existe servicio de consulta del estado de la transacción SAP; esta brecha no corresponde a SCE.</desc>
             <defs>
               <marker id="arrow-proposal" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto">
                 <path d="M0,0 L10,4 L0,8 Z" fill="#64748b"></path>
@@ -345,7 +345,7 @@
               <path d="M750 540 H1030" marker-end="url(#arrow-proposal)"></path>
               <path d="M590 600 V660 H410 V720" marker-end="url(#arrow-proposal)"></path>
               <path d="M1230 600 V700" marker-end="url(#arrow-proposal)"></path>
-              <path d="M1230 800 V840" class="dashed" marker-end="url(#arrow-proposal)"></path>
+              <path d="M430 350 H370" class="dashed" marker-end="url(#arrow-proposal)"></path>
               <text x="890" y="520" class="edge-label" text-anchor="middle">OK · HTTP 200 + IsOk TRUE</text>
               <text x="605" y="638" class="edge-label">Error / rechazo / timeout</text>
               <text x="1245" y="654" class="edge-label">Recepción y actualización de stock</text>
@@ -393,7 +393,7 @@
               <text x="590" y="515">
                 <tspan x="590">¿SAP responde HTTP 200 y OK?</tspan>
                 <tspan x="590" dy="25">Validar IsOk y guardar respuesta</tspan>
-                <tspan x="590" dy="22">No garantiza el estado final</tspan>
+                <tspan x="590" dy="22">No garantiza el estado final en SAP</tspan>
               </text>
             </g>
             <a class="node-link" href="https://github.com/eblasiAndreani/workspace-operativo/blob/main/diagrams/facturacion-sap-componentes.md#api-de-abastecimiento" target="_blank" rel="noopener">
@@ -425,12 +425,13 @@
               </text>
             </g>
             <g class="node note">
-              <rect x="1010" y="840" width="540" height="130" rx="12"></rect>
-              <text x="1280" y="871">
-                <tspan x="1280">BRECHA · Posible rechazo posterior al HTTP 200</tspan>
-                <tspan x="1280" dy="26">Hoy no existe servicio de consulta del estado de la transacción.</tspan>
-                <tspan x="1280" dy="26">Detección, conciliación y recuperación pendientes.</tspan>
-                <tspan x="1280" dy="26">No se representa una consulta ni un reintento existente.</tspan>
+              <rect x="30" y="280" width="340" height="170" rx="12"></rect>
+              <text x="200" y="311">
+                <tspan x="200">BRECHA DE SAP · No de SCE</tspan>
+                <tspan x="200" dy="26">Posible rechazo en SAP después del 200.</tspan>
+                <tspan x="200" dy="26">Sin servicio de consulta del estado</tspan>
+                <tspan x="200" dy="22">de la transacción SAP.</tspan>
+                <tspan x="200" dy="26">Detección y recuperación sin definir.</tspan>
               </text>
             </g>
             <text x="30" y="1015" class="edge-label">La API de sugerencia de abastecimiento orquesta el flujo; los tratamientos de error siguen abiertos.</text>
