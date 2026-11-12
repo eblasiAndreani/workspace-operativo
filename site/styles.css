@@ -334,10 +334,45 @@ main {
   stroke-dasharray: 6 5;
 }
 
+.flowchart .node-link {
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.flowchart .node-link .node rect {
+  transition: stroke-width 0.15s, filter 0.15s;
+}
+
+.flowchart .node-link:hover .node rect,
+.flowchart .node-link:focus-visible .node rect {
+  stroke-width: 4;
+  filter: brightness(0.96);
+}
+
+.flowchart .node-link:focus-visible {
+  outline: 3px solid #4338ca;
+  outline-offset: 3px;
+}
+
+.flowchart .node-link:focus-visible .node rect {
+  stroke: #312e81;
+}
+
+.flowchart .node .link-icon {
+  fill: #4338ca;
+  font-size: 16px;
+  font-weight: 700;
+}
+
 .stage-link {
   color: #4338ca;
   font-size: 0.88rem;
   font-weight: 600;
+}
+
+.stage-overview > .stage-hint {
+  margin: 10px 0 0;
+  font-size: 0.85rem;
 }
 
 button {

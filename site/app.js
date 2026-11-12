@@ -76,6 +76,13 @@ function updateStage() {
     stageOverview.append(detailLink);
   }
 
+  if (activeDiagram && activeDiagram.querySelector(".node-link")) {
+    const nodeHint = document.createElement("p");
+    nodeHint.className = "stage-hint";
+    nodeHint.textContent = "Los cuadros con ↗ abren el detalle de cada bloque en una pestaña nueva.";
+    stageOverview.append(nodeHint);
+  }
+
   if (!activeDiagram) {
     const placeholder = document.createElement("div");
     placeholder.className = "stage-placeholder";

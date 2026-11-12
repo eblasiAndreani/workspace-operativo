@@ -1,6 +1,8 @@
 # Etapa 2 · Facturación en SAP
 
-Cómo llega hoy la orden de compra (OC) a SAP y qué cambia si la API de sugerencia la envía directo. Documento público: no incluye URLs, credenciales ni datos de clientes; esos valores viven en la configuración y en los secretos de cada API.
+Cómo llega hoy la orden de compra (OC) a SAP, cómo se llama a la API de SAP PO y qué cambia si la API de sugerencia la envía directo. El detalle de cada bloque de los diagramas está en [Componentes](facturacion-sap-componentes.md).
+
+Documento público: la URL de SAP PO aparece con variables y no se incluyen credenciales ni datos de clientes; los valores reales viven en la configuración y en los secretos de cada API.
 
 ## Flujo actual
 
@@ -49,31 +51,61 @@ sequenceDiagram
 7. Si SAP no responde 2xx, corta y devuelve 502 con el mensaje de SAP.
 8. Si responde 2xx, guarda ACEPTADO con `OrdenCompraSAP` y `TransactionIdSAP`. No valida `IsOk`: una respuesta con `IsOk = "FALSE"` también queda ACEPTADO.
 
-## Mensaje a SAP
+## API de SAP PO
 
-`POST` JSON con nombres en PascalCase, Basic auth y header `Cookie` opcional (ambos desde la configuración).
+Interfaz REST de SAP PO para el alta de la OC (Tipo 1) y la recepción de la mercadería (Tipo 2). Es la que llama hoy el publicador y la que llamaría la API de sugerencia.
 
-| Campo | Formato | Hoy (evento de ASN) | Propuesta (API de sugerencia) |
+### URL y headers
+
+```text
+POST http://<host-sap-po>:50000/RESTAdapter/<interfaz-alta-oc>
+```
+
+| Parte | Detalle |
+| --- | --- |
+| `<host-sap-po>` | Host de SAP PO de cada ambiente (desarrollo, QA y producción). Red interna, HTTP, puerto 50000. |
+| `<interfaz-alta-oc>` | Interfaz de alta de OC y recepción: la misma en todos los ambientes y para Tipo 1 y Tipo 2. |
+| `Authorization` | `Basic` con usuario y contraseña del usuario técnico de SAP PO. Sin token ni OAuth. |
+| `Content-Type` | `application/json; charset=utf-8`. El contrato también acepta `text/json` y `text/plain`. |
+| `Cookie` | Opcional: cookie de balanceo de SAP PO. |
+
+Los valores reales de cada ambiente no se copian acá. Hoy el publicador los pide a la API de configuración (por propietario + evento) y, si falta alguno, usa su propia configuración:
+
+| Valor | API de configuración | Configuración del publicador |
+| --- | --- | --- |
+| URL | `Url` | `ExternalApi:SapUrl` |
+| Usuario | `ClientId` | `ExternalApi:SapClientId` |
+| Contraseña | `ClientSecret` | `ExternalApi:SapClientSecret` |
+| Cookie | `UrlToken` | `ExternalApi:SapCookie` |
+
+### Request
+
+Body JSON con nombres en PascalCase. Todos los campos de la tabla son obligatorios salvo `TransactionIdSAP`, y no se admiten campos adicionales.
+
+| Campo | Contrato | Hoy (evento de ASN) | Propuesta (API de sugerencia) |
 | --- | --- | --- | --- |
-| `Tipo` | 1 car. | Creada `1` · verificada `2` | `1` |
-| `Proveedor` | máx. 10 | `asnOriginalEcommerce` | Código SAP del proveedor (validar ceros) |
-| `Pedido` | máx. 10 | `recepcionWh` (n° de OC en SCE) | A definir (ver puntos abiertos) |
-| `ASN` | máx. 10 | `referenciaProveedor` | A definir |
-| `Fecha` | `yyyy-MM-dd` | Fecha del evento | Fecha de la OC |
-| `TransactionIdSAP` | opcional, máx. 10 | No se envía | El recibido, solo en reintentos |
+| `Tipo` | texto, 1 car. | Creada `1` · verificada `2` | `1` |
+| `Proveedor` | texto, máx. 10 | `asnOriginalEcommerce` | Código SAP del proveedor (validar ceros) |
+| `Pedido` | texto, máx. 10 | `recepcionWh` (n° de OC en SCE) | A definir (ver puntos abiertos) |
+| `ASN` | texto, máx. 10 | `referenciaProveedor` | A definir |
+| `Fecha` | fecha `YYYY-MM-DD` | Fecha del evento | Fecha de la OC |
+| `TransactionIdSAP` | texto, 1 a 10, opcional | No se envía | El recibido, solo en reintentos |
+| `Items` | lista | Líneas de la ASN | Líneas de la OC |
 | `Items[].Posicion` | entero | Dígitos de `lineaExterna` | N° de línea (1, 2, …) |
-| `Items[].Cantidad` | texto `0.##` | `cantEsperada` (Tipo 1) · `cantRecibida` (Tipo 2) | Cantidad pedida (validar unidad) |
-| `Items[].Material` | 18, ceros a la izquierda | `sku` | Código SAP del material |
-| `Items[].Centro` | máx. 10 | `codigoCliente` | Centro SAP |
-| `Items[].Almacen` | máx. 10 | `almacenConsumo` | Almacén SAP (validar código) |
+| `Items[].Cantidad` | texto con punto decimal | `cantEsperada` (Tipo 1) · `cantRecibida` (Tipo 2) | Cantidad pedida (validar unidad) |
+| `Items[].Material` | texto, máx. 18 | `sku` con ceros a la izquierda hasta 18 | Código SAP del material, con el mismo formato |
+| `Items[].Centro` | texto, máx. 10 | `codigoCliente` | Centro SAP |
+| `Items[].Almacen` | texto, máx. 10 | `almacenConsumo` | Almacén SAP (validar código) |
 
-Los ítems se agrupan por línea + material sumando cantidades. El Tipo 1 lleva todas las líneas; el Tipo 2, solo las recibidas (cantidad recibida > 0 y esperada = 0).
+El contrato también define `MotivoAjuste` (máx. 255) solo para ajustes de stock (Tipo 3 y 4): no se envía en el alta ni en la recepción. Hoy los ítems se agrupan por línea + material sumando cantidades; el Tipo 1 lleva todas las líneas y el Tipo 2, solo las recibidas (cantidad recibida > 0 y esperada = 0).
 
-**Respuesta:** `IsOk` (`"TRUE"` / `"FALSE"`), `Codigo`, `Mensaje`, `OrdenCompraSAP` (n° de OC en SAP) y `TransactionIdSAP`. Con 400 o 401 devuelve `{ IsOk, Codigo, Mensaje }`.
+Ejemplo de alta (Tipo 1) con valores ficticios:
 
-Ejemplo con valores ficticios:
+```http
+POST http://<host-sap-po>:50000/RESTAdapter/<interfaz-alta-oc>
+Authorization: Basic <base64 de usuario:contraseña>
+Content-Type: application/json; charset=utf-8
 
-```json
 {
   "Tipo": "1",
   "Proveedor": "123456",
@@ -85,6 +117,51 @@ Ejemplo con valores ficticios:
   ]
 }
 ```
+
+En un reintento se agrega `"TransactionIdSAP"` con el valor que devolvió SAP.
+
+### Respuestas
+
+| HTTP | Body | Cómo interpretarla |
+| --- | --- | --- |
+| `200` | `IsOk`, `Codigo`, `Mensaje`, `OrdenCompraSAP` (n° de OC en SAP) y `TransactionIdSAP` | Éxito solo si `IsOk = "TRUE"`; con `"FALSE"` es un error de SAP aunque el HTTP sea 200. |
+| `400` | `IsOk = "FALSE"`, `Codigo` y `Mensaje` | Request inválido. |
+| `401` | `IsOk = "FALSE"`, `Codigo` y `Mensaje` | Usuario o contraseña inválidos. |
+
+Ejemplos del contrato:
+
+```json
+{ "IsOk": "TRUE", "Codigo": "200", "Mensaje": "", "OrdenCompraSAP": "3241211", "TransactionIdSAP": "00000001" }
+```
+
+```json
+{ "IsOk": "FALSE", "Codigo": "01", "Mensaje": "Mensaje de Error" }
+```
+
+### Validaciones
+
+**Del contrato.** SAP PO declara `400` para un request inválido y `401` para credenciales inválidas.
+
+- Campos obligatorios presentes, con el tipo y el largo de la tabla; `Fecha` en `YYYY-MM-DD`.
+- Sin campos adicionales, ni en la cabecera ni en los ítems.
+- `TransactionIdSAP` de 1 a 10 caracteres: se omite en el primer envío y nunca va vacío.
+
+**Antes de enviar**, recomendadas en la API de sugerencia:
+
+- Al menos un ítem y `Posicion` única, mayor que 0.
+- `Cantidad` con punto decimal y hasta 2 decimales: formato `0.##` con cultura invariante (con `es-AR` saldría coma).
+- `Material` con ceros a la izquierda hasta 18, como el publicador. La API de sugerencia hoy lo envía sin ceros al WMS.
+- `Fecha` en hora de Argentina: la OC se guarda en UTC y, después de las 21 h, pasaría al día siguiente.
+- Controlar los largos y rechazar la OC si un valor no entra, en lugar de truncarlo.
+- No reenviar una OC que SAP ya aceptó.
+
+**Al recibir la respuesta:**
+
+- Éxito = 2xx **y** `IsOk = "TRUE"`. El publicador hoy solo mira el HTTP.
+- Leer `Codigo` y `OrdenCompraSAP` como texto: pueden llegar como número.
+- Guardar `Codigo`, `Mensaje`, `OrdenCompraSAP` y `TransactionIdSAP`.
+
+Las validaciones de negocio de SAP (proveedor, material, centro y almacén existentes, OC duplicada) y sus códigos de error están por confirmar: ver [puntos abiertos](#puntos-abiertos).
 
 ## Propuesta: envío directo desde la API de sugerencia
 
@@ -111,15 +188,15 @@ sequenceDiagram
 
 ### Checklist de implementación
 
-- [ ] Cliente HTTP a SAP PO: `POST` JSON, Basic auth, `Cookie` opcional y timeout.
-- [ ] Configuración en secretos: URL, usuario, contraseña, cookie y un flag para habilitar el envío.
-- [ ] Mapper OC → mensaje Tipo 1 según la tabla.
+- [ ] Cliente HTTP a [SAP PO](#api-de-sap-po): `POST` JSON, Basic auth, `Cookie` opcional y timeout.
+- [ ] Configuración por ambiente: URL, usuario, contraseña y cookie (secretos propios o API de configuración) y un flag para habilitar el envío.
+- [ ] Mapper OC → request Tipo 1 según la [tabla](#request) y las [validaciones](#validaciones).
 - [ ] Éxito = 2xx **y** `IsOk = "TRUE"`; cualquier otro caso queda como error con `Codigo` y `Mensaje`.
 - [ ] Guardar por OC: estado SAP, `OrdenCompraSAP`, `TransactionIdSAP`, mensaje y fecha.
 - [ ] No reenviar OC aceptadas; en reintentos, mandar el `TransactionIdSAP` recibido.
 - [ ] Reintento propio (endpoint o job): fuera del circuito de almacenes no hay reintento automático.
 - [ ] Acordar con almacenes la regla anti-duplicado antes de habilitar.
-- [ ] Tests: mapper, respuesta OK, `IsOk = "FALSE"`, 400/401 y timeout.
+- [ ] Tests: mapper, validaciones, respuesta OK, `IsOk = "FALSE"`, 400/401 y timeout.
 
 ### Puntos abiertos
 
@@ -127,6 +204,9 @@ sequenceDiagram
 - **Duplicados**: cómo reconoce almacenes las OC que ya envió la API de sugerencia.
 - **Cantidad**: la API envía bultos al WMS y el publicador no convierte por caja; confirmar si SAP espera bultos o unidades.
 - **Proveedor y ASN**: formato del proveedor y qué valor va en `ASN` si todavía no existe en el WMS.
+- **Largos**: los ejemplos del contrato para `Proveedor`, `Pedido` y `ASN` tienen 12 caracteres, pero el máximo declarado es 10.
+- **Validaciones de SAP**: qué controla SAP (proveedor, material, centro, almacén, OC duplicada) y con qué `Codigo` responde cada caso.
+- **Reintento sin respuesta**: si reenviar un envío que quedó sin respuesta (timeout) puede duplicar la OC en SAP.
 - **ASN rechazada en el WMS**: qué pasa con la OC ya creada en SAP.
 - **Orden y fallas**: si se envía primero a SAP o al WMS y qué hacer si falla uno de los dos.
 - **Accesos**: usuario técnico de SAP PO y acceso de red desde la API de sugerencia.

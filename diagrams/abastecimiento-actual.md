@@ -54,7 +54,7 @@ flowchart LR
     PO --> SAP[SAP]
 ```
 
-Mensaje a SAP, reglas del publicador y propuesta de envío directo desde la API de sugerencia: [Facturación en SAP](facturacion-sap.md).
+API de SAP PO (URL, request y validaciones), reglas del publicador y propuesta de envío directo desde la API de sugerencia: [Facturación en SAP](facturacion-sap.md). Detalle de cada bloque: [Componentes de la etapa 2](facturacion-sap-componentes.md).
 
 ## Etapa 3: manejo de maestros
 
