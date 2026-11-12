@@ -1,6 +1,6 @@
-# Abastecimiento · Flujo actual
+# Abastecimiento · Flujo actual y propuesta
 
-## Etapa 1: generación de orden de compra
+## Etapa 1: generación de orden de compra (flujo actual)
 
 El relevamiento actual alcanza la generación de una **sugerencia de compra en Excel**. Los pasos posteriores hasta la orden de compra todavía están pendientes de documentar.
 
@@ -36,6 +36,40 @@ flowchart LR
 ```
 
 El notebook de Python está conectado a Databricks para recuperar la información. El modelo matemático se representa como un paso lógico aplicado mediante el notebook, no como un sistema independiente. No se especifican el origen físico de las fuentes ni las fórmulas o el contenido de las reglas.
+
+## Etapa 1: generación de sugerencia (flujo propuesto)
+
+La propuesta mantiene el procesamiento actual para generar la sugerencia, pero obtiene las reglas de proveedores y materiales desde una base SQL. Cada ejecución del modelo recibe esas reglas y las combina con las recepciones históricas, las recepciones y el maestro de stock obtenidos de Databricks. El formato de salida de la sugerencia no está especificado en este flujo.
+
+```mermaid
+flowchart LR
+    subgraph DATABRICKS[Datos recuperados de Databricks]
+        RH[Recepciones históricas]
+        RE[Recepciones]
+        ST[Maestro de stock]
+    end
+    subgraph SQL[Base de datos SQL]
+        RP[Reglas de proveedores]
+        RM[Reglas de materiales]
+    end
+    EJ[Ejecución del modelo]
+    subgraph PROCESO[Procesamiento existente]
+        NB[Combina datos y reglas]
+        MOD[Modelo de abastecimiento]
+        NB --> MOD
+    end
+    SUG[Sugerencia de compra]
+
+    RH --> EJ
+    RE --> EJ
+    ST --> EJ
+    RP -->|Se envían en cada ejecución| EJ
+    RM -->|Se envían en cada ejecución| EJ
+    EJ --> NB
+    MOD --> SUG
+```
+
+La continuación desde la sugerencia hasta la generación de la orden de compra todavía está pendiente de relevar.
 
 ## Etapa 2: facturación en SAP
 

@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 540" role="img" aria-labelledby="title desc">
+  <title id="title">Generación propuesta de sugerencia de compra</title>
+  <desc id="desc">Reglas de proveedores y materiales almacenadas en SQL y datos de recepciones históricas, recepciones y stock de Databricks se envían en cada ejecución al procesamiento existente del modelo de abastecimiento para generar la sugerencia de compra.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto">
+      <path d="M0 0 L10 4 L0 8 Z" fill="#64748b"/>
+    </marker>
+    <style>
+      text { font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #172033; }
+      .group { stroke-width: 2; }
+      .source { fill: #f8fafc; stroke: #94a3b8; }
+      .rules { fill: #f5f7ff; stroke: #4f46e5; }
+      .process { fill: #fff7f7; stroke: #dc2626; }
+      .output { fill: #fffbeb; stroke: #f59e0b; }
+      .title { font-size: 20px; font-weight: 700; fill: #334155; }
+      .node { stroke-width: 2; }
+      .source-node { fill: #f4f6f8; stroke: #64748b; }
+      .rule-node { fill: #e0e7ff; stroke: #4f46e5; }
+      .process-node { fill: #fee2e2; stroke: #dc2626; }
+      .output-node { fill: #fef3c7; stroke: #f59e0b; }
+      .node-label { font-size: 17px; font-weight: 600; text-anchor: middle; }
+      .node-detail { font-size: 14px; fill: #475569; text-anchor: middle; }
+      .edge { fill: none; stroke: #64748b; stroke-width: 2.5; marker-end: url(#arrow); }
+      .edge-label { font-size: 14px; fill: #475569; text-anchor: middle; }
+    </style>
+  </defs>
+
+  <rect class="group source" x="24" y="34" width="365" height="470" rx="16"/>
+  <text class="title" x="50" y="74">Datos de Databricks</text>
+  <rect class="node source-node" x="60" y="112" width="293" height="76" rx="10"/>
+  <text class="node-label" x="206" y="142">Recepciones históricas</text>
+  <text class="node-detail" x="206" y="166">Datos de entrada del modelo</text>
+  <rect class="node source-node" x="60" y="226" width="293" height="76" rx="10"/>
+  <text class="node-label" x="206" y="256">Recepciones</text>
+  <text class="node-detail" x="206" y="280">Datos de entrada del modelo</text>
+  <rect class="node source-node" x="60" y="340" width="293" height="76" rx="10"/>
+  <text class="node-label" x="206" y="370">Maestro de stock</text>
+  <text class="node-detail" x="206" y="394">Datos de entrada del modelo</text>
+
+  <rect class="group rules" x="24" y="520" width="365" height="0" rx="16"/>
+  <rect class="node rule-node" x="445" y="112" width="300" height="110" rx="12"/>
+  <text class="node-label" x="595" y="150">Base de datos SQL</text>
+  <text class="node-detail" x="595" y="179">Reglas de proveedores y materiales</text>
+  <text class="node-detail" x="595" y="201">Enviadas en cada ejecución</text>
+
+  <rect class="group process" x="800" y="90" width="330" height="330" rx="16"/>
+  <text class="title" x="826" y="130">Procesamiento existente</text>
+  <rect class="node process-node" x="840" y="166" width="250" height="92" rx="12"/>
+  <text class="node-label" x="965" y="199">Combina datos y reglas</text>
+  <text class="node-detail" x="965" y="227">En la ejecución del modelo</text>
+  <rect class="node process-node" x="840" y="300" width="250" height="78" rx="12"/>
+  <text class="node-label" x="965" y="328">Modelo de abastecimiento</text>
+  <text class="node-detail" x="965" y="352">Cálculo de sugerencia</text>
+
+  <rect class="node output-node" x="1180" y="198" width="195" height="112" rx="12"/>
+  <text class="node-label" x="1278" y="235">Sugerencia</text>
+  <text class="node-label" x="1278" y="260">de compra</text>
+
+  <path class="edge" d="M353 150 H410 V194 H840"/>
+  <path class="edge" d="M353 264 H420 V211 H840"/>
+  <path class="edge" d="M353 378 H430 V228 H840"/>
+  <path class="edge" d="M745 166 H840"/>
+  <path class="edge" d="M965 258 V300"/>
+  <path class="edge" d="M1090 338 H1180"/>
+  <text class="edge-label" x="595" y="430">Datos + reglas alimentan el procesamiento</text>
+</svg>
