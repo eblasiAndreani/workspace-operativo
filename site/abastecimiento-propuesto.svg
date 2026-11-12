@@ -11,7 +11,6 @@
       .source { fill: #f8fafc; stroke: #94a3b8; }
       .rules { fill: #f5f7ff; stroke: #4f46e5; }
       .process { fill: #fff7f7; stroke: #dc2626; }
-      .output { fill: #fffbeb; stroke: #f59e0b; }
       .title { font-size: 20px; font-weight: 700; fill: #334155; }
       .node { stroke-width: 2; }
       .source-node { fill: #f4f6f8; stroke: #64748b; }
@@ -25,42 +24,37 @@
     </style>
   </defs>
 
-  <rect class="group source" x="24" y="34" width="365" height="470" rx="16"/>
+  <rect class="group source" x="24" y="34" width="365" height="275" rx="16"/>
   <text class="title" x="50" y="74">Datos de Databricks</text>
-  <rect class="node source-node" x="60" y="112" width="293" height="76" rx="10"/>
-  <text class="node-label" x="206" y="142">Recepciones históricas</text>
-  <text class="node-detail" x="206" y="166">Datos de entrada del modelo</text>
-  <rect class="node source-node" x="60" y="226" width="293" height="76" rx="10"/>
-  <text class="node-label" x="206" y="256">Recepciones</text>
-  <text class="node-detail" x="206" y="280">Datos de entrada del modelo</text>
-  <rect class="node source-node" x="60" y="340" width="293" height="76" rx="10"/>
-  <text class="node-label" x="206" y="370">Maestro de stock</text>
-  <text class="node-detail" x="206" y="394">Datos de entrada del modelo</text>
+  <rect class="node source-node" x="60" y="96" width="293" height="56" rx="10"/>
+  <text class="node-label" x="206" y="124">Recepciones históricas</text>
+  <rect class="node source-node" x="60" y="166" width="293" height="56" rx="10"/>
+  <text class="node-label" x="206" y="194">Recepciones</text>
+  <rect class="node source-node" x="60" y="236" width="293" height="56" rx="10"/>
+  <text class="node-label" x="206" y="264">Maestro de stock</text>
 
-  <rect class="group rules" x="24" y="520" width="365" height="0" rx="16"/>
-  <rect class="node rule-node" x="445" y="112" width="300" height="110" rx="12"/>
-  <text class="node-label" x="595" y="150">Base de datos SQL</text>
-  <text class="node-detail" x="595" y="179">Reglas de proveedores y materiales</text>
-  <text class="node-detail" x="595" y="201">Enviadas en cada ejecución</text>
+  <rect class="group rules" x="24" y="338" width="365" height="166" rx="16"/>
+  <text class="title" x="50" y="378">Reglas de negocio</text>
+  <rect class="node rule-node" x="60" y="394" width="293" height="84" rx="10"/>
+  <text class="node-label" x="206" y="423">Base de datos SQL</text>
+  <text class="node-detail" x="206" y="450">Proveedores y materiales</text>
+  <text class="node-detail" x="206" y="470">Se envían en cada ejecución</text>
 
-  <rect class="group process" x="800" y="90" width="330" height="330" rx="16"/>
-  <text class="title" x="826" y="130">Procesamiento existente</text>
-  <rect class="node process-node" x="840" y="166" width="250" height="92" rx="12"/>
-  <text class="node-label" x="965" y="199">Combina datos y reglas</text>
-  <text class="node-detail" x="965" y="227">En la ejecución del modelo</text>
-  <rect class="node process-node" x="840" y="300" width="250" height="78" rx="12"/>
-  <text class="node-label" x="965" y="328">Modelo de abastecimiento</text>
-  <text class="node-detail" x="965" y="352">Cálculo de sugerencia</text>
+  <rect class="group process" x="500" y="90" width="430" height="330" rx="16"/>
+  <text class="title" x="526" y="130">Procesamiento existente</text>
+  <rect class="node process-node" x="540" y="166" width="350" height="92" rx="12"/>
+  <text class="node-label" x="715" y="199">Combina datos y reglas</text>
+  <text class="node-detail" x="715" y="227">En la ejecución del modelo</text>
+  <rect class="node process-node" x="540" y="300" width="350" height="78" rx="12"/>
+  <text class="node-label" x="715" y="328">Modelo de abastecimiento</text>
+  <text class="node-detail" x="715" y="352">Cálculo de sugerencia</text>
 
-  <rect class="node output-node" x="1180" y="198" width="195" height="112" rx="12"/>
-  <text class="node-label" x="1278" y="235">Sugerencia</text>
-  <text class="node-label" x="1278" y="260">de compra</text>
+  <rect class="node output-node" x="1060" y="198" width="315" height="112" rx="12"/>
+  <text class="node-label" x="1218" y="235">Sugerencia</text>
+  <text class="node-label" x="1218" y="260">de compra</text>
 
-  <path class="edge" d="M353 150 H410 V194 H840"/>
-  <path class="edge" d="M353 264 H420 V211 H840"/>
-  <path class="edge" d="M353 378 H430 V228 H840"/>
-  <path class="edge" d="M745 166 H840"/>
-  <path class="edge" d="M965 258 V300"/>
-  <path class="edge" d="M1090 338 H1180"/>
-  <text class="edge-label" x="595" y="430">Datos + reglas alimentan el procesamiento</text>
+  <path class="edge" d="M389 170 H450 V200 H540"/>
+  <path class="edge" d="M389 436 H450 V225 H540"/>
+  <path class="edge" d="M715 258 V300"/>
+  <path class="edge" d="M890 338 H1060"/>
 </svg>
