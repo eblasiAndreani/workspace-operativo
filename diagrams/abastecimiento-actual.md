@@ -39,7 +39,9 @@ El notebook de Python está conectado a Databricks para recuperar la informació
 
 ## Etapa 1: generación de sugerencia (flujo propuesto)
 
-La propuesta mantiene el procesamiento del modelo matemático. En cada ejecución, el modelo solicita a **Abastecimiento API** las reglas de proveedores y materiales; la API las consulta en una base SQL y se las devuelve. El modelo también recupera de Databricks las recepciones históricas, las recepciones y el maestro de stock. Con ambos insumos calcula la sugerencia y entrega el resultado a Abastecimiento API, que devuelve la sugerencia de compra. El flujo termina en esa respuesta; los pasos posteriores aún no están definidos.
+La propuesta mantiene el procesamiento del modelo matemático. En cada ejecución, el modelo solicita a **Abastecimiento API** las reglas de proveedores y materiales; la API las consulta en una base SQL y se las devuelve. El modelo también recupera de Databricks las recepciones históricas, las recepciones y el maestro de stock. Con ambos insumos calcula la sugerencia y **la escribe directamente en la tabla de control de la base de datos**, sin pasar por la API. Este flujo termina con la sugerencia guardada.
+
+Abastecimiento API devuelve la sugerencia de compra; el mecanismo con el que recupera el resultado guardado todavía no está relevado. No se representa una entrega directa del resultado desde el modelo a la API.
 
 ```mermaid
 flowchart LR
@@ -52,7 +54,7 @@ flowchart LR
     MOD[Modelo matemático de abastecimiento]
     ABA[Abastecimiento API]
     SQL[(Base SQL\nReglas de proveedores y materiales)]
-    SUG[Sugerencia de compra]
+    CTRL[(Base de datos: tabla de control)]
 
     RH --> DB
     RE --> DB
@@ -62,11 +64,10 @@ flowchart LR
     ABA -->|Consulta| SQL
     SQL -->|Reglas| ABA
     ABA -->|Devuelve reglas| MOD
-    MOD -->|Resultado calculado| ABA
-    ABA -->|Devuelve| SUG
+    MOD -->|Escribe directamente la sugerencia| CTRL
 ```
 
-La continuación desde la respuesta de la sugerencia hasta la generación de la orden de compra todavía está pendiente de relevar.
+La continuación desde la sugerencia guardada hasta la generación de la orden de compra todavía está pendiente de relevar.
 
 ## Etapa 2: facturación en SAP
 

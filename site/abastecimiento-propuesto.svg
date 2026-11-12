@@ -1,6 +1,6 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1540 660" role="img" aria-labelledby="title desc">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1540 760" role="img" aria-labelledby="title desc">
   <title id="title">Flujo propuesto de generación de sugerencia de compra</title>
-  <desc id="desc">El modelo recupera recepciones históricas, recepciones y stock de Databricks. Solicita las reglas a Abastecimiento API, que las consulta en SQL y se las devuelve. El modelo calcula la sugerencia, la entrega a la API y esta devuelve la sugerencia de compra.</desc>
+  <desc id="desc">El modelo recupera recepciones históricas, recepciones y stock de Databricks. Solicita las reglas a Abastecimiento API, que las consulta en SQL y se las devuelve. El modelo calcula la sugerencia y la escribe directamente en la tabla de control de la base de datos, sin pasar por la API.</desc>
   <defs>
     <marker id="arrow" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto">
       <path d="M0 0 L10 4 L0 8 Z" fill="#52627a"/>
@@ -67,10 +67,12 @@
   <text class="detail" x="1408" y="332">Proveedores</text>
   <text class="detail" x="1408" y="355">y materiales</text>
 
-  <rect class="node result-node" x="900" y="570" width="290" height="66" rx="12"/>
-  <text class="label" x="1045" y="603">Respuesta: sugerencia de compra</text>
+  <rect class="group db-group" x="1080" y="570" width="436" height="130" rx="16"/>
+  <text class="title" x="1104" y="604">Base de datos · Tabla de control</text>
+  <rect class="node result-node" x="1112" y="622" width="372" height="52" rx="12"/>
+  <text class="label" x="1298" y="654">Sugerencia de compra guardada</text>
 
-  <path class="edge edge-data" d="M324 326 H452"/>
+  <path class="edge edge-data" d="M324 290 H452"/>
   <text class="edge-label" x="388" y="310">Recupera datos</text>
 
   <path class="edge edge-api" d="M748 220 H820 V272 H926"/>
@@ -96,9 +98,7 @@
   <path class="edge edge-api" d="M600 330 V390"/>
   <text class="edge-label" x="600" y="362">Calcula resultado</text>
 
-  <path class="edge edge-result" d="M728 428 H840 V540 H1045 V570"/>
-  <text class="edge-label" x="856" y="458">Resultado del modelo</text>
-
-  <path class="edge edge-result" d="M1045 390 V570"/>
-  <text class="edge-label" x="1090" y="500">La API devuelve</text>
+  <path class="edge edge-result" d="M600 466 V648 H1112"/>
+  <text class="edge-label" x="830" y="632">El modelo escribe directamente · Sin pasar por la API</text>
+  <text class="detail" x="770" y="734">El flujo termina con la sugerencia guardada en la tabla de control.</text>
 </svg>
