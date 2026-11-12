@@ -74,7 +74,7 @@ flowchart LR
     GOB -->|Maestros actualizados que devuelve la API| ABA
 ```
 
-La continuación desde la sugerencia guardada hasta la generación de la orden de compra todavía está pendiente de relevar.
+La continuación propuesta desde la sugerencia guardada se documenta en [Facturación en SAP](facturacion-sap.md#propuesta-envío-directo-desde-la-api-de-sugerencia): generación de OC con materiales asignados al almacén, ASN versionada, envío a SAP y llamada a Abastecimiento API solo después del OK de SAP. La etapa 1 termina con la sugerencia guardada.
 
 ## Etapa 2: facturación en SAP
 

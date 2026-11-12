@@ -6,7 +6,7 @@
     <meta name="description" content="Flujos actual y propuesto de abastecimiento, organizados en tres etapas.">
     <title>Abastecimiento · Workspace operativo</title>
     <link rel="stylesheet" href="styles.css">
-    <script src="app.js?v=api-gobierno-1" defer></script>
+    <script src="app.js?v=oc-asn-sap-1" defer></script>
   </head>
   <body>
     <header class="page-header">
@@ -324,143 +324,93 @@
           </svg>
         </div>
         <div id="proposed-billing-diagram" class="diagram-scroll" hidden>
-          <svg class="flowchart" viewBox="0 0 1600 640" role="group" aria-labelledby="proposal-title proposal-description">
-            <title id="proposal-title">Flujo propuesto: envío directo de la orden de compra a SAP</title>
-            <desc id="proposal-description">La API de sugerencia envía la orden de compra directo a SAP (Tipo 1) y guarda la respuesta. El envío a la API de abastecimiento y SCE/WMS se mantiene; almacenes solo publica la recepción (Tipo 2) y deja de publicar el alta de estas órdenes.</desc>
+          <svg class="flowchart" viewBox="0 0 1600 780" role="group" aria-labelledby="proposal-title proposal-description">
+            <title id="proposal-title">Propuesta: sugerencia, orden de compra, ASN versionada y SAP</title>
+            <desc id="proposal-description">Se toma la sugerencia de compra, se genera la OC distribuyendo los materiales según el almacén donde se gestionan y se arma una ASN versionada para que el worker de WMS no genere otra OC. Se envía a SAP y solo con HTTP 200 y resultado OK se llama a Abastecimiento API para recepción y actualización de stock. Ante error no se avanza.</desc>
             <defs>
               <marker id="arrow-proposal" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto">
                 <path d="M0,0 L10,4 L0,8 Z" fill="#64748b"></path>
               </marker>
             </defs>
 
-            <g class="group app-group">
-              <rect x="20" y="30" width="740" height="190" rx="14"></rect>
-              <text x="40" y="65" class="group-title">API de sugerencia de abastecimiento</text>
-            </g>
-            <g class="group destination-group">
-              <rect x="840" y="30" width="740" height="190" rx="14"></rect>
-              <text x="860" y="65" class="group-title">SAP</text>
-            </g>
-            <g class="group source-group">
-              <rect x="20" y="270" width="1180" height="190" rx="14"></rect>
-              <text x="40" y="305" class="group-title">Almacenes · sin cambios salvo la regla nueva</text>
-            </g>
-
             <g class="edges" aria-hidden="true">
-              <path d="M350 140 H430" marker-end="url(#arrow-proposal)"></path>
-              <path d="M730 130 H870" marker-end="url(#arrow-proposal)"></path>
-              <path d="M870 160 H730" class="dashed" marker-end="url(#arrow-proposal)"></path>
-              <path d="M1170 140 H1250" marker-end="url(#arrow-proposal)"></path>
-              <path d="M200 185 V335" marker-end="url(#arrow-proposal)"></path>
-              <path d="M350 380 H430" marker-end="url(#arrow-proposal)"></path>
-              <path d="M730 380 H870" marker-end="url(#arrow-proposal)"></path>
-              <path d="M1020 335 V185" marker-end="url(#arrow-proposal)"></path>
-              <path d="M1250 380 H1170" class="dashed"></path>
-              <text x="390" y="128" class="edge-label" text-anchor="middle">OC</text>
-              <text x="800" y="118" class="edge-label" text-anchor="middle">Tipo 1</text>
-              <text x="800" y="182" class="edge-label" text-anchor="middle">Respuesta</text>
-              <text x="210" y="250" class="edge-label">OC (igual que hoy)</text>
-              <text x="390" y="368" class="edge-label" text-anchor="middle">OC</text>
-              <text x="800" y="368" class="edge-label" text-anchor="middle">Eventos ASN</text>
-              <text x="1030" y="250" class="edge-label">Tipo 2 (recepción)</text>
+              <path d="M350 130 H430" marker-end="url(#arrow-proposal)"></path>
+              <path d="M750 130 H830" marker-end="url(#arrow-proposal)"></path>
+              <path d="M1150 130 H1230" marker-end="url(#arrow-proposal)"></path>
+              <path d="M1390 190 V355" marker-end="url(#arrow-proposal)"></path>
+              <path d="M1230 415 H830" marker-end="url(#arrow-proposal)"></path>
+              <path d="M1390 475 V585" marker-end="url(#arrow-proposal)"></path>
+              <text x="1030" y="399" class="edge-label" text-anchor="middle">Sí · Solo con HTTP 200 + OK</text>
+              <text x="1405" y="540" class="edge-label">No / error / timeout</text>
             </g>
-
-            <a class="node-link" href="https://github.com/eblasiAndreani/workspace-operativo/blob/main/diagrams/facturacion-sap-componentes.md#api-de-sugerencia" target="_blank" rel="noopener">
-              <title>Ver detalle: API de sugerencia</title>
-              <g class="node app-node">
-                <rect x="50" y="95" width="300" height="90" rx="10"></rect>
-                <text x="200" y="129">
-                  <tspan x="200">Generación de la OC</tspan>
-                  <tspan x="200" dy="22">Igual que hoy</tspan>
-                </text>
-                <text x="332" y="113" class="link-icon" aria-hidden="true">↗</text>
-              </g>
-            </a>
+            <g class="node source-node">
+              <rect x="30" y="70" width="320" height="120" rx="12"></rect>
+              <text x="190" y="112">
+                <tspan x="190">Tomar sugerencia de compra</tspan>
+                <tspan x="190" dy="25">Guardada en la tabla de control</tspan>
+              </text>
+            </g>
             <a class="node-link" href="https://github.com/eblasiAndreani/workspace-operativo/blob/main/diagrams/facturacion-sap.md#propuesta-envío-directo-desde-la-api-de-sugerencia" target="_blank" rel="noopener">
-              <title>Ver detalle: propuesta de envío directo</title>
-              <g class="node app-node highlight">
-                <rect x="430" y="95" width="300" height="90" rx="10"></rect>
-                <text x="580" y="129">
-                  <tspan x="580">Envío directo a SAP</tspan>
-                  <tspan x="580" dy="22">Nuevo · guarda la respuesta</tspan>
+              <title>Ver detalle del flujo propuesto</title>
+              <g class="node app-node">
+                <rect x="430" y="70" width="320" height="120" rx="12"></rect>
+                <text x="590" y="105">
+                  <tspan x="590">Generar orden de compra</tspan>
+                  <tspan x="590" dy="25">Distribuir materiales según</tspan>
+                  <tspan x="590" dy="22">el almacén donde se gestionan</tspan>
                 </text>
-                <text x="712" y="113" class="link-icon" aria-hidden="true">↗</text>
+                <text x="730" y="90" class="link-icon" aria-hidden="true">↗</text>
               </g>
             </a>
+            <g class="node app-node highlight">
+              <rect x="830" y="70" width="320" height="120" rx="12"></rect>
+              <text x="990" y="105">
+                <tspan x="990">Armar número de ASN versionado</tspan>
+                <tspan x="990" dy="25">Para que el worker de WMS</tspan>
+                <tspan x="990" dy="22">no genere otra OC</tspan>
+              </text>
+            </g>
             <a class="node-link" href="https://github.com/eblasiAndreani/workspace-operativo/blob/main/diagrams/facturacion-sap.md#api-de-sap-po" target="_blank" rel="noopener">
               <title>Ver detalle: API de SAP PO</title>
               <g class="node destination-node">
-                <rect x="870" y="95" width="300" height="90" rx="10"></rect>
-                <text x="1020" y="129">
-                  <tspan x="1020">SAP PO</tspan>
-                  <tspan x="1020" dy="22">Interfaz REST · Basic auth</tspan>
+                <rect x="1230" y="70" width="320" height="120" rx="12"></rect>
+                <text x="1390" y="112">
+                  <tspan x="1390">Enviar la OC a SAP</tspan>
+                  <tspan x="1390" dy="25">Vía SAP PO · Alta de la OC</tspan>
                 </text>
-                <text x="1152" y="113" class="link-icon" aria-hidden="true">↗</text>
+                <text x="1530" y="90" class="link-icon" aria-hidden="true">↗</text>
               </g>
             </a>
-            <a class="node-link" href="https://github.com/eblasiAndreani/workspace-operativo/blob/main/diagrams/facturacion-sap-componentes.md#sap" target="_blank" rel="noopener">
-              <title>Ver detalle: SAP</title>
-              <g class="node destination-node">
-                <rect x="1250" y="95" width="300" height="90" rx="10"></rect>
-                <text x="1400" y="129">
-                  <tspan x="1400">SAP</tspan>
-                  <tspan x="1400" dy="22">OC (Tipo 1) · Recepción (Tipo 2)</tspan>
-                </text>
-                <text x="1532" y="113" class="link-icon" aria-hidden="true">↗</text>
-              </g>
-            </a>
+            <g class="node destination-node">
+              <rect x="1230" y="355" width="320" height="120" rx="12"></rect>
+              <text x="1390" y="390">
+                <tspan x="1390">¿SAP responde HTTP 200 y OK?</tspan>
+                <tspan x="1390" dy="25">Validar también IsOk = TRUE</tspan>
+                <tspan x="1390" dy="22">y guardar la respuesta</tspan>
+              </text>
+            </g>
             <a class="node-link" href="https://github.com/eblasiAndreani/workspace-operativo/blob/main/diagrams/facturacion-sap-componentes.md#api-de-abastecimiento" target="_blank" rel="noopener">
               <title>Ver detalle: API de abastecimiento</title>
-              <g class="node source-node">
-                <rect x="50" y="335" width="300" height="90" rx="10"></rect>
-                <text x="200" y="369">
-                  <tspan x="200">API de abastecimiento</tspan>
-                  <tspan x="200" dy="22">Recibe la OC (202)</tspan>
+              <g class="node app-node">
+                <rect x="430" y="355" width="400" height="120" rx="12"></rect>
+                <text x="630" y="400">
+                  <tspan x="630">Llamar a Abastecimiento API</tspan>
+                  <tspan x="630" dy="25">Recepción y actualización de stock</tspan>
                 </text>
-                <text x="332" y="353" class="link-icon" aria-hidden="true">↗</text>
+                <text x="810" y="375" class="link-icon" aria-hidden="true">↗</text>
               </g>
             </a>
-            <a class="node-link" href="https://github.com/eblasiAndreani/workspace-operativo/blob/main/diagrams/facturacion-sap-componentes.md#sce--wms" target="_blank" rel="noopener">
-              <title>Ver detalle: SCE / WMS</title>
-              <g class="node source-node">
-                <rect x="430" y="335" width="300" height="90" rx="10"></rect>
-                <text x="580" y="369">
-                  <tspan x="580">SCE / WMS</tspan>
-                  <tspan x="580" dy="22">Crea y recibe la ASN</tspan>
-                </text>
-                <text x="712" y="353" class="link-icon" aria-hidden="true">↗</text>
-              </g>
-            </a>
-            <a class="node-link" href="https://github.com/eblasiAndreani/workspace-operativo/blob/main/diagrams/facturacion-sap-componentes.md#suscriptor-de-novedades" target="_blank" rel="noopener">
-              <title>Ver detalle: suscriptor y publicador</title>
-              <g class="node model-node">
-                <rect x="870" y="335" width="300" height="90" rx="10"></rect>
-                <text x="1020" y="369">
-                  <tspan x="1020">Suscriptor + publicador</tspan>
-                  <tspan x="1020" dy="22">Solo recepción (Tipo 2)</tspan>
-                </text>
-                <text x="1152" y="353" class="link-icon" aria-hidden="true">↗</text>
-              </g>
-            </a>
-            <a class="node-link" href="https://github.com/eblasiAndreani/workspace-operativo/blob/main/diagrams/facturacion-sap.md#puntos-abiertos" target="_blank" rel="noopener">
-              <title>Ver detalle: puntos abiertos</title>
-              <g class="node note">
-                <rect x="1250" y="335" width="300" height="90" rx="10"></rect>
-                <text x="1400" y="369">
-                  <tspan x="1400">Regla nueva en almacenes</tspan>
-                  <tspan x="1400" dy="22">No publicar Tipo 1 de estas OC</tspan>
-                </text>
-                <text x="1532" y="353" class="link-icon" aria-hidden="true">↗</text>
-              </g>
-            </a>
-
-            <text x="50" y="505" class="group-title">Pendiente de definir con SAP y almacenes</text>
-            <text x="50" y="535" class="edge-label">• Pedido: debe coincidir con el que usa la recepción (Tipo 2).</text>
-            <text x="50" y="560" class="edge-label">• Cantidad en bultos o unidades; formato de Proveedor y ASN.</text>
-            <text x="50" y="585" class="edge-label">• ASN rechazada en el WMS: qué hacer con la OC ya creada en SAP.</text>
-            <text x="870" y="535" class="edge-label">• Reintentos y monitoreo propios en la API de sugerencia.</text>
-            <text x="870" y="560" class="edge-label">• Usuario técnico de SAP y acceso de red a SAP PO.</text>
-            <text x="870" y="585" class="edge-label">• Orden de envío SAP / WMS y qué hacer si falla uno.</text>
+            <g class="node note">
+              <rect x="1230" y="585" width="320" height="90" rx="12"></rect>
+              <text x="1390" y="618">
+                <tspan x="1390">Registrar error / No avanzar</tspan>
+                <tspan x="1390" dy="24">No llamar a Abastecimiento API</tspan>
+              </text>
+            </g>
+            <text x="30" y="585" class="group-title">Alcance de esta propuesta</text>
+            <text x="30" y="618" class="edge-label">El circuito de almacenes, suscriptor y publicador no forma parte de este diagrama.</text>
+            <text x="30" y="648" class="edge-label">Pendiente: formato y reconocimiento de la ASN versionada por el worker de WMS.</text>
+            <text x="30" y="678" class="edge-label">Pendiente: contrato de recepción / stock y tratamiento de fallas después del OK de SAP.</text>
           </svg>
         </div>
       </section>

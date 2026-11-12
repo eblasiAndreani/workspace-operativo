@@ -6,7 +6,7 @@ Espacio público para organizar diagramas, indicadores de pedidos y proyectos, y
 
 - [Diagrama de abastecimiento WOS + Modelo YAS](diagrams/abastecimiento-wos-yas.md)
 - [Flujo actual y propuesta de abastecimiento](diagrams/abastecimiento-actual.md): modelo con lectura y escritura directa en SQL, datos de Databricks y Abastecimiento API para CRUD de reglas y devolución de maestros actualizados desde Gobierno; también documenta la publicación de la orden de compra en SAP.
-- [Facturación en SAP](diagrams/facturacion-sap.md): circuito actual de la orden de compra hacia SAP, API de SAP PO (URL, request y validaciones) y propuesta de envío directo desde la API de sugerencia.
+- [Facturación en SAP](diagrams/facturacion-sap.md): circuito actual y contrato de SAP PO; propuesta desde la sugerencia hacia OC, asignación de materiales al almacén, ASN versionada, envío a SAP y llamada a Abastecimiento API para recepción y stock solo después del OK.
 - [Componentes de facturación en SAP](diagrams/facturacion-sap-componentes.md): qué hace, recibe y devuelve cada bloque de los diagramas de la etapa 2.
 - [Guía para trabajar con agentes](playbooks/trabajo-con-agentes.md)
 - `projects/`: planes y documentación de proyectos.
