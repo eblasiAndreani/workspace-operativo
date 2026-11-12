@@ -39,7 +39,7 @@ El notebook de Python está conectado a Databricks para recuperar la informació
 
 ## Etapa 1: generación de sugerencia (flujo propuesto)
 
-La propuesta mantiene el procesamiento existente para generar la sugerencia. En cada ejecución, el modelo obtiene las reglas de proveedores y materiales mediante **Abastecimiento API**; el servicio las consulta en una base SQL y las devuelve al modelo. En paralelo, el modelo recibe de Databricks las recepciones históricas, las recepciones y el maestro de stock. Con esos datos y reglas calcula la sugerencia de compra. El flujo termina en la sugerencia; los pasos posteriores aún no están definidos.
+La propuesta mantiene el procesamiento del modelo matemático. En cada ejecución, el modelo solicita a **Abastecimiento API** las reglas de proveedores y materiales; la API las consulta en una base SQL y se las devuelve. El modelo también recupera de Databricks las recepciones históricas, las recepciones y el maestro de stock. Con ambos insumos calcula la sugerencia y entrega el resultado a Abastecimiento API, que devuelve la sugerencia de compra. El flujo termina en esa respuesta; los pasos posteriores aún no están definidos.
 
 ```mermaid
 flowchart LR
@@ -48,22 +48,25 @@ flowchart LR
         RE[Recepciones]
         ST[Maestro de stock]
     end
-    MOD[Modelo de abastecimiento]
+    DB[Databricks]
+    MOD[Modelo matemático de abastecimiento]
     ABA[Abastecimiento API]
     SQL[(Base SQL\nReglas de proveedores y materiales)]
     SUG[Sugerencia de compra]
 
-    RH --> MOD
-    RE --> MOD
-    ST --> MOD
-    MOD -->|Solicita reglas en cada ejecución| ABA
+    RH --> DB
+    RE --> DB
+    ST --> DB
+    DB -->|Datos| MOD
+    MOD -->|Solicita reglas| ABA
     ABA -->|Consulta| SQL
     SQL -->|Reglas| ABA
     ABA -->|Devuelve reglas| MOD
-    MOD -->|Calcula| SUG
+    MOD -->|Resultado calculado| ABA
+    ABA -->|Devuelve| SUG
 ```
 
-La continuación desde la sugerencia hasta la generación de la orden de compra todavía está pendiente de relevar.
+La continuación desde la respuesta de la sugerencia hasta la generación de la orden de compra todavía está pendiente de relevar.
 
 ## Etapa 2: facturación en SAP
 
