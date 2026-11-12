@@ -6,7 +6,7 @@
     <meta name="description" content="Flujos actual y propuesto de abastecimiento, organizados en tres etapas.">
     <title>Abastecimiento · Workspace operativo</title>
     <link rel="stylesheet" href="styles.css">
-    <script src="app.js?v=brecha-sap-2" defer></script>
+    <script src="app.js?v=asn-creada-1" defer></script>
   </head>
   <body>
     <header class="page-header">
@@ -348,7 +348,7 @@
               <path d="M430 350 H370" class="dashed" marker-end="url(#arrow-proposal)"></path>
               <text x="890" y="520" class="edge-label" text-anchor="middle">OK · HTTP 200 + IsOk TRUE</text>
               <text x="605" y="638" class="edge-label">Error / rechazo / timeout</text>
-              <text x="1245" y="654" class="edge-label">Recepción y actualización de stock</text>
+              <text x="1245" y="654" class="edge-label">Envío a SCE</text>
             </g>
             <g class="node source-node">
               <rect x="30" y="70" width="320" height="120" rx="12"></rect>
@@ -421,7 +421,7 @@
               <rect x="1030" y="700" width="400" height="100" rx="12"></rect>
               <text x="1230" y="737">
                 <tspan x="1230">SCE</tspan>
-                <tspan x="1230" dy="25">Recepción y actualización de stock</tspan>
+                <tspan x="1230" dy="25">Genera el evento ASN creada</tspan>
               </text>
             </g>
             <g class="node note">
@@ -435,7 +435,7 @@
               </text>
             </g>
             <text x="30" y="1015" class="edge-label">La API de sugerencia de abastecimiento orquesta el flujo; los tratamientos de error siguen abiertos.</text>
-            <text x="30" y="1045" class="edge-label">Se muestra SCE solo como destino vía API, sin reintroducir el circuito de eventos, suscriptor y publicador.</text>
+            <text x="30" y="1045" class="edge-label">En esta parte del flujo, SCE únicamente genera el evento ASN creada; no se detalla su procesamiento posterior.</text>
           </svg>
         </div>
       </section>

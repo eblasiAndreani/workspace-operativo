@@ -167,11 +167,11 @@ Las validaciones de negocio de SAP (proveedor, material, centro y almacén exist
 
 La **API de sugerencia de abastecimiento** gestiona toda esta secuencia: toma la **sugerencia de compra guardada en la tabla de control**, genera una orden de compra que distribuye los materiales según el almacén donde deben gestionarse y arma un **número de ASN versionado**, que debe permitir que el worker de WMS reconozca estas órdenes y no genere otra OC.
 
-La misma API de sugerencia de abastecimiento envía la OC a SAP por SAP PO (Tipo 1), valida y guarda la respuesta. **Solo con HTTP 200 y resultado OK** llama a **Abastecimiento API para acceder a SCE y gestionar la recepción y actualización de stock**. Según el contrato documentado, un HTTP 200 con `IsOk = "FALSE"` no es OK: no se continúa. Ante error o timeout, no llama a Abastecimiento API; **el tratamiento del error no está definido**. Son dos servicios distintos: la API de sugerencia de abastecimiento orquesta el flujo; Abastecimiento API recibe la llamada posterior al OK de SAP.
+La misma API de sugerencia de abastecimiento envía la OC a SAP por SAP PO (Tipo 1), valida y guarda la respuesta. **Solo con HTTP 200 y resultado OK** llama a **Abastecimiento API para acceder a SCE**. En esta parte del flujo, **SCE únicamente genera el evento ASN creada**; no se le atribuyen recepción física ni actualización de stock. Según el contrato documentado, un HTTP 200 con `IsOk = "FALSE"` no es OK: no se continúa. Ante error o timeout, no llama a Abastecimiento API; **el tratamiento del error no está definido**. Son dos servicios distintos: la API de sugerencia de abastecimiento orquesta el flujo; Abastecimiento API recibe la llamada posterior al OK de SAP.
 
 **Restricciones y brechas confirmadas:** una ASN rechazada no puede reutilizarse; se debe generar otra. **Del lado de SAP**, puede producirse un rechazo posterior a un HTTP 200. Actualmente **no existe un servicio de consulta para conocer el estado de la transacción SAP**, por lo que recibir el 200 no garantiza su estado final en SAP. La detección del rechazo tardío, la conciliación y la recuperación quedan pendientes de definir. Un timeout tampoco demuestra que la transacción haya sido rechazada: no se define regeneración ni reenvío automático.
 
-SCE se muestra únicamente como destino de la llamada vía Abastecimiento API. El circuito de eventos de ASN, suscriptor y publicador sale de esta parte del flujo propuesto. Esto no modifica el [flujo actual](#flujo-actual) ni define cómo se realizará una eventual publicación Tipo 2. La consulta por `idTransaccion` descrita para la API de abastecimiento del flujo actual no se asume disponible para resolver esta brecha del nuevo flujo. El reconocimiento de la ASN versionada por el worker es un requisito de integración, no un mecanismo ya validado.
+SCE se muestra como destino de la llamada vía Abastecimiento API y generador del evento ASN creada. El procesamiento posterior del evento, suscriptor y publicador queda fuera de esta parte del flujo propuesto. Esto no modifica el [flujo actual](#flujo-actual) ni define cómo se realizará una eventual publicación Tipo 2. La consulta por `idTransaccion` descrita para la API de abastecimiento del flujo actual no se asume disponible para resolver esta brecha del nuevo flujo. El reconocimiento de la ASN versionada por el worker es un requisito de integración, no un mecanismo ya validado.
 
 ```mermaid
 sequenceDiagram
@@ -189,8 +189,9 @@ sequenceDiagram
     SAP-->>SUG: HTTP, IsOk, OrdenCompraSAP, TransactionIdSAP
     SUG->>SUG: Guarda estado y respuesta
     alt HTTP 200 e IsOk TRUE
-        SUG->>ABA: Solicita recepción y actualización de stock
-        ABA->>SCE: Gestiona recepción y stock
+        SUG->>ABA: Solicita envío a SCE
+        ABA->>SCE: Envía la OC / ASN versionada
+        SCE->>SCE: Genera evento ASN creada
         Note over SUG,SAP: SAP puede rechazar después del 200; no hay servicio de consulta del estado SAP
     else Error de SAP / IsOk FALSE / timeout
         Note over SUG: No llama a Abastecimiento API; tratamiento pendiente
@@ -209,7 +210,7 @@ sequenceDiagram
 - [ ] Guardar por OC: estado SAP, `OrdenCompraSAP`, `TransactionIdSAP`, mensaje y fecha.
 - [ ] Definir política de reintentos y correlación con `TransactionIdSAP`, OC y nueva ASN; no asumir que se puede reutilizar una ASN rechazada.
 - [ ] Definir tratamiento de errores y timeouts antes de automatizar reenvíos: no existe hoy consulta del estado de la transacción SAP.
-- [ ] Llamar a Abastecimiento API para recepción y actualización de stock solo después del OK de SAP.
+- [ ] Llamar a Abastecimiento API para el envío a SCE solo después del OK de SAP; SCE genera el evento ASN creada.
 - [ ] Registrar errores y definir recuperación si SAP acepta la OC pero falla Abastecimiento API.
 - [ ] Tests: reparto de materiales, ASN versionada, mapper, validaciones, respuesta OK, `IsOk = "FALSE"`, 400/401, timeout y no invocar Abastecimiento API sin OK de SAP.
 
@@ -227,7 +228,7 @@ sequenceDiagram
 - **Largos**: los ejemplos del contrato para `Proveedor`, `Pedido` y `ASN` tienen 12 caracteres, pero el máximo declarado es 10.
 - **Validaciones de SAP**: qué controla SAP (proveedor, material, centro, almacén, OC duplicada) y con qué `Codigo` responde cada caso.
 - **Reintento sin respuesta**: si reenviar un envío que quedó sin respuesta (timeout) puede duplicar la OC en SAP.
-- **Recepción y stock**: endpoint, request, respuesta y alcance de la operación en Abastecimiento API; no se presupone que reemplace la recepción física ni que se ejecute de forma inmediata.
-- **Falla posterior a SAP**: cómo recuperar la recepción / actualización de stock si SAP ya aceptó la OC pero falla Abastecimiento API.
+- **Envío a SCE**: endpoint, request y respuesta de Abastecimiento API. El procesamiento posterior del evento ASN creada no se detalla en esta parte del flujo.
+- **Falla posterior a SAP**: cómo recuperar el envío a SCE si SAP ya aceptó la OC pero falla Abastecimiento API.
 - **Tipo 2**: fuera del alcance de este diagrama; no se mantiene como supuesto el circuito anterior de almacenes.
 - **Accesos**: usuario técnico de SAP PO y acceso de red desde la API de sugerencia.
