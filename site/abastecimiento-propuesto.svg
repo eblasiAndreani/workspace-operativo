@@ -1,6 +1,6 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1540 660" role="img" aria-labelledby="title desc">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1740 990" role="img" aria-labelledby="title desc">
   <title id="title">Sugerencia de compra: lectura y escritura directa en SQL</title>
-  <desc id="desc">En cada ejecución, el modelo recupera datos de Databricks y lee directamente las reglas de proveedores y materiales de SQL. Combina los insumos y escribe la sugerencia en la tabla de control de la misma base SQL. No interviene la API.</desc>
+  <desc id="desc">El modelo lee reglas de proveedores y materiales de SQL, recupera datos de Databricks y escribe la sugerencia en la tabla de control de la misma base. Abastecimiento API permite CRUD de las reglas y devuelve maestros actualizados de tiendas, materiales y proveedores desde Gobierno. El modelo accede directamente a SQL.</desc>
   <defs>
     <marker id="arrow" markerWidth="9" markerHeight="7" refX="9" refY="3.5" orient="auto" markerUnits="userSpaceOnUse">
       <path d="M0 0 L9 3.5 L0 7 Z" fill="#64748b"/>
@@ -11,12 +11,16 @@
     <marker id="arrow-result" markerWidth="9" markerHeight="7" refX="9" refY="3.5" orient="auto" markerUnits="userSpaceOnUse">
       <path d="M0 0 L9 3.5 L0 7 Z" fill="#b45309"/>
     </marker>
+    <marker id="arrow-api" markerWidth="9" markerHeight="7" refX="9" refY="3.5" orient="auto-start-reverse" markerUnits="userSpaceOnUse">
+      <path d="M0 0 L9 3.5 L0 7 Z" fill="#4338ca"/>
+    </marker>
     <style>
       text { font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #172033; }
       .group { stroke-width: 2; }
       .source { fill: #f8fafc; stroke: #94a3b8; }
       .model { fill: #fff7f7; stroke: #ef4444; }
       .sql { fill: #f5f3ff; stroke: #8b5cf6; }
+      .api { fill: #eef2ff; stroke: #6366f1; }
       .node { stroke-width: 2; }
       .input { fill: #fff; stroke: #94a3b8; }
       .calculation { fill: #fee2e2; stroke: #ef4444; }
@@ -29,6 +33,8 @@
       .data-edge { stroke: #64748b; marker-end: url(#arrow); }
       .rules-edge { stroke: #6d28d9; marker-end: url(#arrow-rules); }
       .result-edge { stroke: #b45309; marker-end: url(#arrow-result); }
+      .crud-edge { stroke: #4338ca; marker-start: url(#arrow-api); marker-end: url(#arrow-api); }
+      .masters-edge { stroke: #4338ca; marker-end: url(#arrow-api); }
       .edge-label { font-size: 14px; font-weight: 600; text-anchor: middle; }
     </style>
   </defs>
@@ -82,5 +88,31 @@
   <text class="edge-label" x="930" y="436">Escribe la sugerencia</text>
   <text class="detail" x="930" y="484">Directamente en la misma base</text>
 
-  <text class="detail" x="770" y="610">Sin intervención de la API. El flujo termina con la sugerencia guardada en la tabla de control.</text>
+  <text class="detail" x="770" y="610">El modelo accede directamente a SQL. El cálculo termina con la sugerencia guardada en la tabla de control.</text>
+
+  <rect class="group source" x="24" y="710" width="510" height="210" rx="16"/>
+  <text class="title" x="50" y="753">Gobierno</text>
+  <text class="label" x="279" y="800">Maestros actualizados</text>
+  <text class="detail" x="279" y="838">Tiendas · Materiales · Proveedores</text>
+  <text class="detail" x="279" y="878">Origen de los maestros</text>
+
+  <rect class="group api" x="1050" y="710" width="466" height="210" rx="16"/>
+  <text class="title" x="1078" y="753">Abastecimiento API</text>
+  <rect class="node api" x="1080" y="775" width="406" height="120" rx="12"/>
+  <text class="label" x="1283" y="809">CRUD de reglas</text>
+  <text class="detail" x="1283" y="837">Crear · Consultar · Modificar · Eliminar</text>
+  <text class="detail" x="1283" y="873">Devuelve los maestros de Gobierno</text>
+
+  <path class="edge masters-edge" d="M534 850 H1080"/>
+  <text class="edge-label" x="807" y="812">Maestros actualizados</text>
+  <text class="detail" x="807" y="835">Tiendas · Materiales · Proveedores</text>
+
+  <path class="edge crud-edge" d="M1486 805 H1590 V215 H1486"/>
+  <text class="edge-label" x="1590" y="620">CRUD</text>
+  <text class="detail" x="1590" y="645">Proveedores</text>
+  <path class="edge crud-edge" d="M1486 865 H1680 V315 H1486"/>
+  <text class="edge-label" x="1680" y="690">CRUD</text>
+  <text class="detail" x="1680" y="715">Materiales</text>
+
+  <text class="detail" x="770" y="963">Las reglas en SQL y los maestros de Gobierno son conceptos distintos. No se representa sincronización entre ambos.</text>
 </svg>

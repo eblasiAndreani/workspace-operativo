@@ -43,6 +43,8 @@ La propuesta mantiene el procesamiento del modelo matemático. En cada ejecució
 
 La base SQL contiene tres entidades importantes: **proveedores**, **materiales** y **tabla de control**. Las dos primeras son entradas del modelo; la tercera guarda la sugerencia calculada. No interviene Abastecimiento API en estas lecturas ni en la escritura. Este flujo termina con la sugerencia guardada.
 
+**Abastecimiento API** permite crear, consultar, modificar y eliminar (CRUD) las reglas de proveedores y materiales de esa base SQL. Además, devuelve los maestros actualizados de **tiendas, materiales y proveedores** desde **Gobierno**. Los maestros de Gobierno y las reglas de negocio en SQL se representan por separado: no se presupone que devolver los maestros implique escribirlos en las entidades de reglas. Los consumidores de estos maestros y el mecanismo de actualización desde Gobierno aún no están detallados.
+
 ```mermaid
 flowchart LR
     subgraph DATABRICKS[Datos recuperados de Databricks]
@@ -65,6 +67,11 @@ flowchart LR
     PR -->|Lectura directa en cada ejecución| MOD
     MA -->|Lectura directa en cada ejecución| MOD
     MOD -->|Escribe directamente la sugerencia| CTRL
+    ABA[Abastecimiento API]
+    GOB[Gobierno: maestros actualizados de tiendas, materiales y proveedores]
+    ABA <-->|CRUD de reglas| PR
+    ABA <-->|CRUD de reglas| MA
+    GOB -->|Maestros actualizados que devuelve la API| ABA
 ```
 
 La continuación desde la sugerencia guardada hasta la generación de la orden de compra todavía está pendiente de relevar.

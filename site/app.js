@@ -2,7 +2,7 @@ const stageDescriptions = {
   "current-stage-1": "Un notebook de Python conectado a Databricks recupera recepciones históricas, recepciones, stock, materiales y proveedores. Combina estos datos con reglas de proveedores y SKU en Excel y aplica el modelo matemático para generar un Excel de sugerencia de compra. Falta relevar la continuación hasta la orden de compra.",
   "current-stage-2": "La orden de compra llega a SAP de forma indirecta. La API de sugerencia la envía a la API de abastecimiento, que crea la ASN en SCE/WMS. La integración de almacenes escucha los eventos de la ASN, guarda la novedad y la publica en SAP a través de SAP PO: al crearse la ASN envía el alta de la OC (Tipo 1) y al verificarse, la recepción (Tipo 2).",
   "current-stage-3": "Etapa pendiente de relevar y ordenar antes de definir una propuesta para gerencia.",
-  "proposed-stage-1": "En cada ejecución, el modelo lee directamente las reglas de proveedores y materiales de una base SQL y recupera de Databricks las recepciones históricas, las recepciones y el maestro de stock. Combina esos insumos, calcula la sugerencia de compra y escribe el resultado en la tabla de control de la misma base SQL. La base contiene las tres entidades: proveedores, materiales y tabla de control. No interviene la API; el flujo termina con la sugerencia guardada.",
+  "proposed-stage-1": "El modelo lee directamente las reglas de proveedores y materiales de SQL, recupera los datos de Databricks y escribe la sugerencia en la tabla de control de la misma base. Abastecimiento API permite crear, consultar, modificar y eliminar esas reglas y devuelve los maestros actualizados de tiendas, materiales y proveedores desde Gobierno. La API no intermedia las lecturas ni la escritura del modelo.",
   "proposed-stage-2": "La API de sugerencia envía el alta de la OC (Tipo 1) directo a SAP PO al generarla y guarda la respuesta, sin depender de la ASN ni de almacenes. El envío a SCE/WMS se mantiene: la recepción (Tipo 2) sigue saliendo de almacenes, que deja de publicar el Tipo 1 de estas órdenes para evitar duplicados.",
   "proposed-stage-3": "Etapa pendiente de pulir y presentar como propuesta a gerencia."
 };
@@ -93,8 +93,8 @@ function updateStage() {
   if (stageId === "proposed-stage-1") {
     const diagram = document.createElement("img");
     diagram.className = "stage-proposed-diagram";
-    diagram.src = "abastecimiento-propuesto.svg?v=sql-directo-1";
-    diagram.alt = "El modelo recupera datos de Databricks y lee directamente proveedores y materiales de SQL. Calcula la sugerencia y la escribe en la tabla de control de la misma base SQL. Las tres entidades pertenecen a una única base; no interviene la API.";
+    diagram.src = "abastecimiento-propuesto.svg?v=api-gobierno-1";
+    diagram.alt = "El modelo lee reglas de SQL y datos de Databricks y escribe la sugerencia en la tabla de control de la misma base. Abastecimiento API administra las reglas de proveedores y materiales mediante CRUD y devuelve maestros actualizados de tiendas, materiales y proveedores desde Gobierno. El acceso del modelo a SQL sigue siendo directo.";
     stageOverview.append(diagram);
   }
 
